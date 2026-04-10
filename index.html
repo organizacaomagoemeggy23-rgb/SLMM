@@ -865,18 +865,75 @@ body.editor-mode .sidebar-toggle{display:block}
    SLMM SYSTEM 1.0 - Multi-table with global assets
    ============================================================ */
 
-const DB_NAME='SLMM_SYS_DB',DB_VER=1;
-const ST_TABLES='tables';     // {id,name,createdAt,updatedAt,data:{teams,lotes,controls,range,columnOrder,assetRefs}}
-const ST_ASSETS='assets';     // {id,type,name,data,createdAt}
-const ST_META='meta';         // {id:'app', currentTableId,...}
-let db=null;
+/* ============================================================
+   SUPABASE BACKEND
+   ============================================================ */
+const SUPABASE_URL='https://apovjvdxemkqygvjscla.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwb3ZqdmR4ZW1rcXlndmpzY2xhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NzEzMTksImV4cCI6MjA5MTM0NzMxOX0.Uq9TLghsYULq33BCRj4R2SHwodcs7AhH2Etz5ht_rQY';
+const BUCKET='slmm-assets';
+const ST_TABLES='tables';
+const ST_ASSETS='assets';
 
-function openDB(){return new Promise((ok,no)=>{const r=indexedDB.open(DB_NAME,DB_VER);r.onerror=()=>no(r.error);r.onsuccess=()=>{db=r.result;ok(db)};r.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains(ST_TABLES))d.createObjectStore(ST_TABLES,{keyPath:'id'});if(!d.objectStoreNames.contains(ST_ASSETS))d.createObjectStore(ST_ASSETS,{keyPath:'id'});if(!d.objectStoreNames.contains(ST_META))d.createObjectStore(ST_META,{keyPath:'id'})}})}
-function dbPut(s,d){return new Promise((ok,no)=>{const t=db.transaction(s,'readwrite');t.objectStore(s).put(d).onsuccess=()=>ok();t.onerror=()=>no(t.error)})}
-function dbGet(s,id){return new Promise((ok,no)=>{const t=db.transaction(s,'readonly');t.objectStore(s).get(id).onsuccess=e=>ok(e.target.result);t.onerror=()=>no(t.error)})}
-function dbDel(s,id){return new Promise((ok,no)=>{const t=db.transaction(s,'readwrite');t.objectStore(s).delete(id).onsuccess=()=>ok();t.onerror=()=>no(t.error)})}
-function dbAll(s){return new Promise((ok,no)=>{const t=db.transaction(s,'readonly');t.objectStore(s).getAll().onsuccess=e=>ok(e.target.result);t.onerror=()=>no(t.error)})}
-function dbClear(s){return new Promise((ok,no)=>{const t=db.transaction(s,'readwrite');t.objectStore(s).clear().onsuccess=()=>ok();t.onerror=()=>no(t.error)})}
+const SB_HEADERS=()=>({
+  'apikey':SUPABASE_KEY,
+  'Authorization':'Bearer '+SUPABASE_KEY,
+  'Content-Type':'application/json'
+});
+
+async function sbRest(path,opts={}){
+  const r=await fetch(SUPABASE_URL+'/rest/v1/'+path,{
+    ...opts,
+    headers:{...SB_HEADERS(),...(opts.headers||{})}
+  });
+  if(!r.ok){const t=await r.text();throw new Error('Supabase '+r.status+': '+t)}
+  if(r.status===204)return null;
+  const txt=await r.text();
+  return txt?JSON.parse(txt):null;
+}
+
+const publicUrl=path=>SUPABASE_URL+'/storage/v1/object/public/'+BUCKET+'/'+path;
+
+// Convert DB row -> in-memory format used by app
+function rowToTable(r){return {id:r.id,name:r.name,pinned:!!r.pinned,createdAt:Number(r.created_at),updatedAt:Number(r.updated_at),data:r.data}}
+function rowToAsset(r){return {id:r.id,type:r.type,name:r.name,storage_path:r.storage_path,createdAt:Number(r.created_at),data:publicUrl(r.storage_path)}}
+
+// Compatibility wrappers (so existing call sites keep working)
+async function dbAll(store){
+  if(store===ST_TABLES){const rows=await sbRest('tables?select=*&order=updated_at.desc');return (rows||[]).map(rowToTable)}
+  if(store===ST_ASSETS){const rows=await sbRest('assets?select=*&order=created_at.desc');return (rows||[]).map(rowToAsset)}
+  return [];
+}
+
+async function dbPut(store,obj){
+  if(store===ST_TABLES){
+    const body={id:obj.id,name:obj.name,pinned:!!obj.pinned,created_at:obj.createdAt,updated_at:obj.updatedAt,data:obj.data};
+    await sbRest('tables',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(body)});
+    return;
+  }
+  if(store===ST_ASSETS){
+    // Asset metadata is saved by uploadAssets directly with sbRest. This wrapper isn't really used.
+    const body={id:obj.id,type:obj.type,name:obj.name,storage_path:obj.storage_path,created_at:obj.createdAt};
+    await sbRest('assets',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(body)});
+    return;
+  }
+}
+
+async function dbDel(store,id){
+  if(store===ST_TABLES){await sbRest('tables?id=eq.'+encodeURIComponent(id),{method:'DELETE',headers:{'Prefer':'return=minimal'}});return}
+  if(store===ST_ASSETS){
+    // also delete file from storage
+    const a=assets.find(x=>x.id===id);
+    if(a&&a.storage_path){
+      try{await fetch(SUPABASE_URL+'/storage/v1/object/'+BUCKET+'/'+a.storage_path,{method:'DELETE',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}})}catch(e){}
+    }
+    await sbRest('assets?id=eq.'+encodeURIComponent(id),{method:'DELETE',headers:{'Prefer':'return=minimal'}});
+    return;
+  }
+}
+
+// no-ops kept for backwards compat
+async function dbGet(){return null}
+async function dbClear(){}
 
 const uid=()=>'id_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 const fmtDate=ts=>{const d=new Date(ts);return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})};
@@ -895,14 +952,12 @@ const ASSET_TYPES=[
 let currentAssetTab='logo-team';
 
 /* ======== GLOBAL STATE ======== */
-let tables=[];           // array of table metadata
-let assets=[];           // array of global assets
-let currentTable=null;   // currently edited table object
+let tables=[];
+let assets=[];
+let currentTable=null;
 let meta={id:'app',currentTableId:null};
 
-/* current-editor runtime state (derived from currentTable) */
 let state={teams:{},lotes:[],controls:{},pages:[{name:'Página 1',start:1,end:12}],currentPageIdx:0,columnOrder:['pts','kills','booyah','matches','group'],assetRefs:{}};
-// assetRefs: { fundo:assetId, efeito:assetId, logo:assetId, titulo:assetId, header:assetId, barra1:id, barra2:id, barra3:id, parceiros:id, teamLogos:{TEAMKEY:assetId} }
 
 let saveTimer=null;
 let currentCountryTeam=null;
@@ -911,10 +966,13 @@ const countries=[{code:'af',name:'Afeganistão'},{code:'za',name:'África do Sul
 
 /* ======== INIT ======== */
 async function init(){
-  try{await openDB()}catch(e){alert('Erro IndexedDB: '+e.message);return}
-  const m=await dbGet(ST_META,'app');if(m)meta=m;
-  tables=(await dbAll(ST_TABLES))||[];
-  assets=(await dbAll(ST_ASSETS))||[];
+  try{
+    tables=await dbAll(ST_TABLES);
+    assets=await dbAll(ST_ASSETS);
+  }catch(e){
+    alert('Erro ao conectar no servidor:\n'+e.message+'\n\nVerifique sua conexão e recarregue a página.');
+    return;
+  }
   renderHome();
   document.getElementById('csv-files')?.addEventListener('change',atualizarListaArq);
   document.getElementById('asset-file-input').addEventListener('change',handleAssetUpload);
@@ -922,6 +980,15 @@ async function init(){
   setupAssetDragDrop();
   updateStorageInfo();
   tickClock();setInterval(tickClock,1000);
+  // periodic refresh on home (simulates live sync for 1-2 users)
+  setInterval(async()=>{
+    if(document.body.classList.contains('editor-mode'))return;
+    try{
+      tables=await dbAll(ST_TABLES);
+      assets=await dbAll(ST_ASSETS);
+      renderHome();
+    }catch(e){}
+  },15000);
   document.addEventListener('keydown',e=>{
     if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;
     if(e.key==='Escape'&&document.body.classList.contains('editor-mode')){goHome()}
@@ -930,7 +997,12 @@ async function init(){
   });
 }
 
-async function updateStorageInfo(){try{if(navigator.storage&&navigator.storage.estimate){const e=await navigator.storage.estimate();const u=(e.usage/1048576).toFixed(1),t=(e.quota/1048576).toFixed(0),p=((e.usage/e.quota)*100).toFixed(1);const l=document.getElementById('storage-label'),sz=document.getElementById('storage-size'),b=document.getElementById('storage-bar');if(l)l.textContent='IndexedDB:';if(sz)sz.textContent=u+'MB/'+t+'MB ('+p+'%)';if(b){b.style.width=Math.min(p,100)+'%';b.style.background=p<50?'var(--success)':p<80?'var(--gold)':'var(--error)'}}}catch(e){}}
+async function updateStorageInfo(){
+  const l=document.getElementById('storage-label'),sz=document.getElementById('storage-size'),b=document.getElementById('storage-bar');
+  if(l)l.textContent='Cloud:';
+  if(sz)sz.textContent='Supabase';
+  if(b){b.style.width='100%';b.style.background='var(--cyan)'}
+}
 
 /* ============================================================
    HOME VIEW
@@ -1047,7 +1119,6 @@ async function openTable(id){
   state.assetRefs=t.data.assetRefs||{teamLogos:{}};
   if(!state.assetRefs.teamLogos)state.assetRefs.teamLogos={};
   meta.currentTableId=id;
-  await dbPut(ST_META,meta);
   document.body.classList.add('editor-mode');
   document.getElementById('home-view').style.display='none';
   document.getElementById('table-name-input').value=t.name;
@@ -1114,18 +1185,42 @@ function setupAssetDragDrop(){
 function handleAssetUpload(e){const f=[...e.target.files];if(f.length)uploadAssets(f);e.target.value=''}
 
 async function uploadAssets(files){
+  const z=document.getElementById('asset-upload-zone');
+  if(z)z.querySelector('strong').textContent='ENVIANDO...';
+  let okCount=0,errCount=0;
   for(const f of files){
     try{
-      const data=await compressImageFile(f,currentAssetTab);
-      const name=f.name.replace(/\.[^/.]+$/,'');
-      const a={id:uid(),type:currentAssetTab,name,data,createdAt:Date.now()};
-      assets.push(a);
-      await dbPut(ST_ASSETS,a);
-    }catch(err){console.error(err)}
+      const dataUrl=await compressImageFile(f,currentAssetTab);
+      // dataUrl -> blob
+      const blob=await(await fetch(dataUrl)).blob();
+      const ext=blob.type==='image/jpeg'?'jpg':'png';
+      const id=uid();
+      const safeName=f.name.replace(/[^\w.-]/g,'_').replace(/\.[^/.]+$/,'');
+      const storage_path=currentAssetTab+'/'+id+'.'+ext;
+      // upload to storage
+      const upR=await fetch(SUPABASE_URL+'/storage/v1/object/'+BUCKET+'/'+storage_path,{
+        method:'POST',
+        headers:{
+          'apikey':SUPABASE_KEY,
+          'Authorization':'Bearer '+SUPABASE_KEY,
+          'Content-Type':blob.type,
+          'x-upsert':'true'
+        },
+        body:blob
+      });
+      if(!upR.ok){throw new Error('Storage upload: '+upR.status+' '+await upR.text())}
+      // save metadata in DB
+      const createdAt=Date.now();
+      await sbRest('assets',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({id,type:currentAssetTab,name:safeName,storage_path,created_at:createdAt})});
+      assets.push({id,type:currentAssetTab,name:safeName,storage_path,createdAt,data:publicUrl(storage_path)});
+      okCount++;
+    }catch(err){console.error(err);errCount++}
   }
+  if(z)z.querySelector('strong').textContent='CLIQUE OU ARRASTE ARQUIVOS';
+  if(errCount)alert(errCount+' arquivo(s) falharam no upload. Verifique o console.');
   renderAssetTabs();
   renderAssetGrid();
-  updateStorageInfo();
+  if(currentTable)renderAssetPicker();
 }
 
 function compressImageFile(file,type){
@@ -1599,11 +1694,9 @@ async function importFullBackup(){
   try{
     const i=JSON.parse(s);
     if(!i.tables||!Array.isArray(i.tables))throw 0;
-    if(!confirm('Isso vai SUBSTITUIR todas as tabelas e assets atuais. Continuar?'))return;
-    await dbClear(ST_TABLES);await dbClear(ST_ASSETS);
-    tables=i.tables;assets=i.assets||[];
-    for(const t of tables)await dbPut(ST_TABLES,t);
-    for(const a of assets)await dbPut(ST_ASSETS,a);
+    if(!confirm('Importar '+i.tables.length+' tabela(s)? Tabelas com mesmo ID serão sobrescritas. Assets NÃO são importados (eles ficam na biblioteca em nuvem).'))return;
+    for(const t of i.tables){await dbPut(ST_TABLES,t)}
+    tables=await dbAll(ST_TABLES);
     showStatus('backup-status','Importado!','success');
     setTimeout(()=>{closeModal('backup-modal');renderHome()},800);
   }catch(e){showStatus('backup-status','JSON inválido','error')}
