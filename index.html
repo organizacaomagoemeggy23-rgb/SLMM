@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SLMM System 1.0</title>
+<title>SLMM System 1.1</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;700&family=Syne:wght@600;700;800&family=Teko:wght@400;500;600;700&display=swap');
@@ -20,7 +20,6 @@
   --body:'Rajdhani',sans-serif;
   --mono:'JetBrains Mono',monospace;
   --largura-final:1080px;--altura-final:1350px;--sidebar-width:380px;
-  /* legacy aliases (don't break existing classnames) */
   --gold-light:var(--gold-glow);--blue-navy:#0a1025;--bg-dark:var(--bg-0);
   --bg-card:var(--bg-2);--bg-card-hover:var(--bg-3);--border-subtle:var(--line);
   --text-primary:var(--ink);--text-secondary:var(--ink-dim);
@@ -107,7 +106,7 @@ body::before{
   letter-spacing:.5px;transition:.2s;
 }
 .search-box input:focus{outline:none;border-color:var(--gold);background:var(--bg-2)}
-.search-box::before{content:'⌕';position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--gold);font-size:22px;pointer-events:none}
+.search-box::before{content:'';position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--gold);font-size:22px;pointer-events:none}
 
 /* table cards */
 .table-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:20px}
@@ -288,7 +287,7 @@ body.editor-mode .sidebar-toggle{display:block}
   border:2px solid var(--line);flex-wrap:wrap;
 }
 .tab-btn{
-  flex:1;min-width:120px;padding:18px 16px;background:transparent;border:none;color:var(--ink-dim);
+  flex:1;min-width:100px;padding:18px 16px;background:transparent;border:none;color:var(--ink-dim);
   font-family:var(--display);font-weight:400;font-size:18px;cursor:pointer;
   letter-spacing:1.5px;transition:.2s;border-right:1px solid var(--line);position:relative;
 }
@@ -383,7 +382,7 @@ body.editor-mode .sidebar-toggle{display:block}
 .picker-item:hover{border-color:var(--gold)}
 .picker-item.selected{border-color:var(--gold);background:rgba(232,185,35,.05)}
 .picker-item.selected::after{
-  content:'✓';position:absolute;top:6px;right:6px;background:var(--gold);color:#000;
+  content:'';position:absolute;top:6px;right:6px;background:var(--gold);color:#000;
   width:22px;height:22px;font-size:14px;font-weight:900;display:flex;align-items:center;justify-content:center;
 }
 .picker-item img{width:100%;height:64px;object-fit:contain;background:rgba(255,255,255,.04);margin-bottom:6px}
@@ -505,6 +504,59 @@ body.editor-mode .sidebar-toggle{display:block}
   font-family:var(--mono);font-size:10px;margin:0 2px;
 }
 
+/* ================= DADOS SUB-TABS ================= */
+.sub-tabs{display:flex;gap:0;margin-bottom:20px;border:2px solid var(--line);background:var(--bg-0)}
+.sub-tab-btn{
+  flex:1;padding:14px 12px;background:transparent;border:none;color:var(--ink-dim);
+  font-family:var(--display);font-weight:400;font-size:15px;cursor:pointer;letter-spacing:1.5px;
+  transition:.2s;border-right:1px solid var(--line);position:relative;
+}
+.sub-tab-btn:last-child{border-right:none}
+.sub-tab-btn::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--gold);transform:scaleX(0);transition:.2s}
+.sub-tab-btn.active{background:var(--bg-2);color:var(--gold)}
+.sub-tab-btn.active::after{transform:scaleX(1)}
+.sub-tab-btn:hover:not(.active){background:var(--bg-2);color:var(--ink)}
+.sub-tab-content{display:none}.sub-tab-content.active{display:block}
+
+/* ================= MANUAL SALA ================= */
+.sala-team-row{
+  display:grid;grid-template-columns:40px 1fr 100px 100px;gap:10px;align-items:center;
+  padding:10px 14px;background:var(--bg-0);border:1px solid var(--line);margin-bottom:6px;transition:.2s;
+}
+.sala-team-row:hover{border-color:var(--line-bright)}
+.sala-team-row .sala-team-logo{width:32px;height:32px;object-fit:contain;background:rgba(255,255,255,.03)}
+.sala-team-row .sala-team-name{font-family:var(--display);font-size:18px;letter-spacing:.5px;font-weight:400}
+.sala-team-row input[type="number"]{
+  width:100%;background:var(--bg-2);border:2px solid var(--line);color:var(--gold);
+  padding:8px;text-align:center;font-family:var(--display);font-size:18px;font-weight:400;
+}
+.sala-team-row input:focus{outline:none;border-color:var(--gold)}
+
+/* ================= RULES TAB ================= */
+.rules-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px;margin-bottom:16px}
+.rule-pos-cell{
+  background:var(--bg-0);border:1px solid var(--line);padding:8px;text-align:center;
+  display:flex;flex-direction:column;gap:4px;
+}
+.rule-pos-cell .pos-label{font-family:var(--mono);font-size:10px;color:var(--ink-mute);letter-spacing:1px}
+.rule-pos-cell input{
+  width:100%;background:var(--bg-2);border:1px solid var(--line);color:var(--gold);
+  padding:6px;text-align:center;font-family:var(--display);font-size:18px;font-weight:400;
+}
+.rule-pos-cell input:focus{outline:none;border-color:var(--gold)}
+
+.tiebreak-list{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.tiebreak-item{
+  background:var(--bg-0);border:1px solid var(--line);padding:14px 18px;
+  display:flex;align-items:center;gap:14px;cursor:grab;transition:.2s;user-select:none;
+}
+.tiebreak-item:hover{border-color:var(--gold)}
+.tiebreak-item.dragging{opacity:.4}
+.tiebreak-item.drag-over{border-color:var(--gold);border-style:dashed}
+.tiebreak-item .handle{color:var(--gold);font-size:18px;cursor:grab}
+.tiebreak-item .tb-name{flex:1;font-family:var(--display);font-size:18px;font-weight:400;letter-spacing:1px}
+.tiebreak-item .tb-num{font-family:var(--mono);font-size:12px;color:var(--ink-mute)}
+
 @media(max-width:1200px){#obs-screen{width:100%;height:auto;aspect-ratio:1080/1350}}
 @media(max-width:768px){
   .sidebar{width:100%}.sidebar-toggle.shifted{right:100%}.main-area.sidebar-open{margin-right:0}
@@ -519,9 +571,9 @@ body.editor-mode .sidebar-toggle{display:block}
 <div class="home" id="home-view">
   <div class="home-header">
     <div class="brand">
-      <span class="eyebrow"><span class="live-dot"></span>SLMM CONTROL ROOM · v1.0</span>
+      <span class="eyebrow"><span class="live-dot"></span>SLMM CONTROL ROOM  v1.1</span>
       <h1>SUPER<br>LIGA MM</h1>
-      <p class="tagline">Geração de tabelas oficiais — multi-projeto, multi-página, biblioteca de assets centralizada.</p>
+      <p class="tagline">Gerao de tabelas oficiais  multi-projeto, multi-pgina, biblioteca de assets centralizada.</p>
     </div>
     <div class="home-nav">
       <div class="live-clock"><span class="time" id="live-time">--:--:--</span><span id="live-date">--</span></div>
@@ -591,9 +643,9 @@ body.editor-mode .sidebar-toggle{display:block}
   <div class="sidebar-section">
     <h3 style="color:#FFD700">TOP 3 DESTAQUE</h3>
     <div class="control-row"><label>Ativar</label><label class="toggle-switch"><input type="checkbox" id="ctrl-show-top3" checked onchange="updateControl()"><span class="toggle-slider"></span></label></div>
-    <div class="control-row"><label>Cor 1°</label><input type="color" id="ctrl-top1-color" value="#FFD700" oninput="updateControl()"></div>
-    <div class="control-row"><label>Cor 2°</label><input type="color" id="ctrl-top2-color" value="#C0C0C0" oninput="updateControl()"></div>
-    <div class="control-row"><label>Cor 3°</label><input type="color" id="ctrl-top3-color" value="#CD7F32" oninput="updateControl()"></div>
+    <div class="control-row"><label>Cor 1</label><input type="color" id="ctrl-top1-color" value="#FFD700" oninput="updateControl()"></div>
+    <div class="control-row"><label>Cor 2</label><input type="color" id="ctrl-top2-color" value="#C0C0C0" oninput="updateControl()"></div>
+    <div class="control-row"><label>Cor 3</label><input type="color" id="ctrl-top3-color" value="#CD7F32" oninput="updateControl()"></div>
     <div class="control-row"><label>Largura faixa</label><input type="range" min="2" max="12" value="5" id="ctrl-top3-width" oninput="updateControl()"><span class="val" id="val-top3-width">5</span></div>
     <div class="control-row"><label>Opacidade</label><input type="range" min="20" max="100" value="90" id="ctrl-top3-opacity" oninput="updateControl()"><span class="val" id="val-top3-opacity">90</span></div>
   </div>
@@ -601,7 +653,7 @@ body.editor-mode .sidebar-toggle{display:block}
   <div class="sidebar-section">
     <h3>CORES E FONTES</h3>
     <div class="control-row"><label>Fonte Texto</label><select id="ctrl-font-text" onchange="updateControl()"><option value="'Montserrat',sans-serif">Montserrat</option><option value="'Orbitron',sans-serif">Orbitron</option><option value="'Roboto',sans-serif">Roboto</option><option value="'Anton',sans-serif">Anton</option><option value="'Oswald',sans-serif">Oswald</option><option value="'Rajdhani',sans-serif">Rajdhani</option><option value="'Bebas Neue',sans-serif">Bebas Neue</option><option value="'Teko',sans-serif">Teko</option></select></div>
-    <div class="control-row"><label>Fonte Números</label><select id="ctrl-font-num" onchange="updateControl()"><option value="'Orbitron',sans-serif">Orbitron</option><option value="'Montserrat',sans-serif">Montserrat</option><option value="'Roboto',sans-serif">Roboto</option><option value="'Anton',sans-serif">Anton</option><option value="'Oswald',sans-serif">Oswald</option><option value="'Rajdhani',sans-serif">Rajdhani</option><option value="'Bebas Neue',sans-serif">Bebas Neue</option><option value="'Teko',sans-serif">Teko</option></select></div>
+    <div class="control-row"><label>Fonte Nmeros</label><select id="ctrl-font-num" onchange="updateControl()"><option value="'Orbitron',sans-serif">Orbitron</option><option value="'Montserrat',sans-serif">Montserrat</option><option value="'Roboto',sans-serif">Roboto</option><option value="'Anton',sans-serif">Anton</option><option value="'Oswald',sans-serif">Oswald</option><option value="'Rajdhani',sans-serif">Rajdhani</option><option value="'Bebas Neue',sans-serif">Bebas Neue</option><option value="'Teko',sans-serif">Teko</option></select></div>
     <div class="control-row"><label>Cor Nome</label><input type="color" id="ctrl-color-name" value="#ffffff" oninput="updateControl()"></div>
     <div class="control-row"><label>Cor Rank</label><input type="color" id="ctrl-color-rank" value="#ffffff" oninput="updateControl()"></div>
     <div class="control-row"><label>Cor PTS</label><input type="color" id="ctrl-color-pts" value="#ffffff" oninput="updateControl()"></div>
@@ -610,7 +662,7 @@ body.editor-mode .sidebar-toggle{display:block}
   </div>
 
   <div class="sidebar-section">
-    <h3>POSIÇÃO COLUNAS</h3>
+    <h3>POSIO COLUNAS</h3>
     <div class="control-row"><label>Rank X</label><input type="range" min="-100" max="200" value="0" id="ctrl-rank-x" oninput="updateControl()"><span class="val" id="val-rank-x">0</span></div>
     <div class="control-row"><label>Logo X</label><input type="range" min="-100" max="200" value="70" id="ctrl-logo-x" oninput="updateControl()"><span class="val" id="val-logo-x">70</span></div>
     <div class="control-row"><label>Larg Rank</label><input type="range" min="30" max="120" value="60" id="ctrl-rank-w" oninput="updateControl()"><span class="val" id="val-rank-w">60</span></div>
@@ -629,7 +681,7 @@ body.editor-mode .sidebar-toggle{display:block}
   </div>
 
   <div class="sidebar-section">
-    <h3>POSIÇÃO STATS</h3>
+    <h3>POSIO STATS</h3>
     <div class="control-row"><label>PTS dir</label><input type="range" min="-50" max="400" value="5" id="ctrl-pts-r" oninput="updateControl()"><span class="val" id="val-pts-r">5</span></div>
     <div class="control-row"><label>KILLS dir</label><input type="range" min="-50" max="400" value="90" id="ctrl-kills-r" oninput="updateControl()"><span class="val" id="val-kills-r">90</span></div>
     <div class="control-row"><label>BOOYAH dir</label><input type="range" min="-50" max="400" value="160" id="ctrl-booyah-r" oninput="updateControl()"><span class="val" id="val-booyah-r">160</span></div>
@@ -649,7 +701,7 @@ body.editor-mode .sidebar-toggle{display:block}
   </div>
 
   <div class="sidebar-section">
-    <h3>ESPAÇAMENTO</h3>
+    <h3>ESPAAMENTO</h3>
     <div class="control-row"><label>Altura barra</label><input type="range" min="40" max="150" value="70" id="ctrl-row-h" oninput="updateControl()"><span class="val" id="val-row-h">70</span></div>
     <div class="control-row"><label>Gap barras</label><input type="range" min="-10" max="40" value="8" id="ctrl-gap" oninput="updateControl()"><span class="val" id="val-gap">8</span></div>
     <div class="control-row"><label>Topo tabela</label><input type="range" min="100" max="800" value="400" id="ctrl-table-top" oninput="updateControl()"><span class="val" id="val-table-top">400</span></div>
@@ -658,15 +710,15 @@ body.editor-mode .sidebar-toggle{display:block}
   </div>
 
   <div class="sidebar-section">
-    <h3>LOGO / TÍTULO</h3>
+    <h3>LOGO / TTULO</h3>
     <div class="control-row"><label>Logo Y</label><input type="range" min="-50" max="400" value="40" id="ctrl-logo-top-y" oninput="updateControl()"><span class="val" id="val-logo-top-y">40</span></div>
     <div class="control-row"><label>Logo tam</label><input type="range" min="50" max="800" value="200" id="ctrl-logo-top-size" oninput="updateControl()"><span class="val" id="val-logo-top-size">200</span></div>
-    <div class="control-row"><label>Título Y</label><input type="range" min="-50" max="600" value="180" id="ctrl-titulo-y" oninput="updateControl()"><span class="val" id="val-titulo-y">180</span></div>
-    <div class="control-row"><label>Título %</label><input type="range" min="20" max="200" value="60" id="ctrl-titulo-w" oninput="updateControl()"><span class="val" id="val-titulo-w">60</span></div>
+    <div class="control-row"><label>Ttulo Y</label><input type="range" min="-50" max="600" value="180" id="ctrl-titulo-y" oninput="updateControl()"><span class="val" id="val-titulo-y">180</span></div>
+    <div class="control-row"><label>Ttulo %</label><input type="range" min="20" max="200" value="60" id="ctrl-titulo-w" oninput="updateControl()"><span class="val" id="val-titulo-w">60</span></div>
   </div>
 
   <div class="sidebar-section">
-    <h3>RODAPÉ</h3>
+    <h3>RODAP</h3>
     <div class="control-row"><label>Pos. Bottom</label><input type="range" min="0" max="300" value="20" id="ctrl-parceiros-y" oninput="updateControl()"><span class="val" id="val-parceiros-y">20</span></div>
     <div class="control-row"><label>Largura %</label><input type="range" min="20" max="100" value="90" id="ctrl-parceiros-w" oninput="updateControl()"><span class="val" id="val-parceiros-w">90</span></div>
   </div>
@@ -677,45 +729,115 @@ body.editor-mode .sidebar-toggle{display:block}
 <div class="main-area" id="main-area">
   <div class="editor-header">
     <div class="eh-left">
-      <button class="back-btn" onclick="goHome()">← VOLTAR</button>
+      <button class="back-btn" onclick="goHome()"> VOLTAR</button>
       <input type="text" class="table-name-input" id="table-name-input" placeholder="Nome da tabela" oninput="renameCurrentTable()">
-      <span class="save-indicator" id="save-indicator">✓ Salvo</span>
+      <span class="save-indicator" id="save-indicator"> Salvo</span>
     </div>
   </div>
 
   <div class="tabs">
     <button class="tab-btn active" data-tab="tab-dados" onclick="switchTab('tab-dados',this)">DADOS</button>
+    <button class="tab-btn" data-tab="tab-regras" onclick="switchTab('tab-regras',this)">REGRAS</button>
     <button class="tab-btn" data-tab="tab-assets" onclick="switchTab('tab-assets',this)">ASSETS</button>
     <button class="tab-btn" data-tab="tab-equipes" onclick="switchTab('tab-equipes',this)">EQUIPES</button>
     <button class="tab-btn" data-tab="tab-layout" onclick="switchTab('tab-layout',this)">LAYOUT</button>
     <button class="tab-btn" data-tab="tab-preview" onclick="switchTab('tab-preview',this)">PREVIEW</button>
   </div>
 
+  <!-- ========== TAB DADOS (with sub-tabs) ========== -->
   <div class="tab-content active" id="tab-dados">
-    <div class="card">
-      <div class="card-title"><div class="icon">1</div>DADOS</div>
-      <p style="color:var(--text-secondary);margin-bottom:12px;font-size:12px">Cada processamento = +1 partida. Auto-reconhecimento de logos por nome de arquivo.</p>
-      <textarea id="csv-text" class="dados-textarea" placeholder="Cole os dados CSV aqui..."></textarea>
-      <div class="button-group" style="margin-bottom:10px">
-        <button class="btn btn-outline" onclick="document.getElementById('csv-files').click()">SELECIONAR ARQUIVOS</button>
-        <input type="file" id="csv-files" accept=".txt,.csv,.log" multiple style="display:none">
-        <button class="btn" onclick="processarTextoCSV()">PROCESSAR TEXTO</button>
-        <button class="btn btn-success" onclick="processarArquivosCSV()">PROCESSAR ARQUIVOS</button>
-      </div>
-      <div id="csv-file-list" style="color:var(--text-secondary);font-size:11px;margin-bottom:8px"></div>
-      <div class="status-msg" id="csv-status"></div>
+    <div class="sub-tabs">
+      <button class="sub-tab-btn active" onclick="switchSubTab('subtab-csv',this)">CSV / LOG</button>
+      <button class="sub-tab-btn" onclick="switchSubTab('subtab-manual',this)">MANUAL POR SALA</button>
     </div>
+
+    <!-- SUB-TAB: CSV / LOG -->
+    <div class="sub-tab-content active" id="subtab-csv">
+      <div class="card">
+        <div class="card-title"><div class="icon">1</div>DADOS (CSV OU MATCHRESULT.LOG)</div>
+        <p style="color:var(--text-secondary);margin-bottom:12px;font-size:12px">
+          Aceita CSV clssico <strong style="color:var(--gold)">OU</strong> formato MatchResult.log (TeamName: X Rank: N ...). Deteco automtica.
+          <br>CSV antigo: l booyah da coluna. MatchResult: Rank 1 = +1 booyah, pontos pela regra ativa.
+        </p>
+        <textarea id="csv-text" class="dados-textarea" placeholder="Cole os dados CSV ou MatchResult.log aqui..."></textarea>
+        <div class="button-group" style="margin-bottom:10px">
+          <button class="btn btn-outline" onclick="document.getElementById('csv-files').click()">SELECIONAR ARQUIVOS</button>
+          <input type="file" id="csv-files" accept=".txt,.csv,.log" multiple style="display:none">
+          <button class="btn" onclick="processarTextoCSV()">PROCESSAR TEXTO</button>
+          <button class="btn btn-success" onclick="processarArquivosCSV()">PROCESSAR ARQUIVOS</button>
+        </div>
+        <div id="csv-file-list" style="color:var(--text-secondary);font-size:11px;margin-bottom:8px"></div>
+        <div class="status-msg" id="csv-status"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><div class="icon">i</div>LOTES <span class="badge-count" id="lote-count">0</span></div>
+        <div id="lote-list-area"><div class="empty-state"><div class="big-icon">+</div><p>Nenhum lote</p></div></div>
+        <div class="button-group"><button class="btn btn-sm btn-danger" onclick="limparTodosLotes()">LIMPAR TUDO</button></div>
+      </div>
+    </div>
+
+    <!-- SUB-TAB: MANUAL POR SALA -->
+    <div class="sub-tab-content" id="subtab-manual">
+      <div class="card">
+        <div class="card-title"><div class="icon">M</div>ENTRADA MANUAL POR SALA</div>
+        <p style="color:var(--text-secondary);margin-bottom:12px;font-size:12px">
+          Preencha posio e kills de cada equipe. <strong style="color:var(--gold)">Posio 1 = +1 booyah automtico.</strong>
+          Pontos calculados pela regra ativa (aba REGRAS). Deixe posio 0 para equipes que no participaram.
+        </p>
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+          <input type="text" id="sala-name" class="search-input" placeholder="Nome da sala (ex: Sala 1)" style="margin-bottom:0;flex:1;min-width:200px">
+          <button class="btn" onclick="renderSalaTeams()">CARREGAR EQUIPES</button>
+          <button class="btn btn-success" onclick="aplicarSalaManual()">APLICAR SALA</button>
+        </div>
+        <div id="sala-teams-area">
+          <div class="empty-state"><div class="big-icon">+</div><p>Cadastre equipes primeiro, depois clique CARREGAR</p></div>
+        </div>
+        <div class="status-msg" id="sala-status"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TAB REGRAS ========== -->
+  <div class="tab-content" id="tab-regras">
     <div class="card">
-      <div class="card-title"><div class="icon">i</div>LOTES <span class="badge-count" id="lote-count">0</span></div>
-      <div id="lote-list-area"><div class="empty-state"><div class="big-icon">+</div><p>Nenhum lote</p></div></div>
-      <div class="button-group"><button class="btn btn-sm btn-danger" onclick="limparTodosLotes()">LIMPAR TUDO</button></div>
+      <div class="card-title"><div class="icon">R</div>REGRAS DE PONTUAO</div>
+      <p style="color:var(--text-secondary);margin-bottom:18px;font-size:12px">
+        Estas regras so usadas pelo <strong style="color:var(--gold)">MatchResult.log</strong> e pelo <strong style="color:var(--gold)">Modo Manual por Sala</strong>.
+        O CSV antigo NO  afetado  ele l os pontos direto do arquivo.
+      </p>
+
+      <h4 style="color:var(--gold);font-family:var(--display);font-size:20px;font-weight:400;letter-spacing:1.5px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--line)">PONTOS POR POSIO</h4>
+      <p style="color:var(--text-secondary);margin-bottom:10px;font-size:11px">Posio 1 = 1 lugar, 2 = 2 lugar, etc. Adicione mais slots se precisar.</p>
+      <div class="rules-grid" id="rules-pos-grid"></div>
+      <div style="display:flex;gap:8px;margin-bottom:24px">
+        <button class="btn btn-sm btn-outline" onclick="addRuleSlot()">+ SLOT</button>
+        <button class="btn btn-sm btn-outline" onclick="removeRuleSlot()">- SLOT</button>
+        <button class="btn btn-sm btn-outline" onclick="applyRulePreset([12,9,8,7,6,5,4,3,2,1,0,0])">PADRO 12</button>
+        <button class="btn btn-sm btn-outline" onclick="applyRulePreset([15,12,10,8,7,6,5,4,3,2,1,0])">PADRO FF</button>
+        <button class="btn btn-sm btn-outline" onclick="applyRulePreset([10,6,5,4,3,2,1,0,0,0,0,0])">PADRO PUBG</button>
+      </div>
+
+      <h4 style="color:var(--gold);font-family:var(--display);font-size:20px;font-weight:400;letter-spacing:1.5px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--line)">PONTOS POR KILL</h4>
+      <div class="control-row" style="max-width:300px;margin-bottom:24px">
+        <label>Pontos por abate</label>
+        <input type="number" id="rule-kill-pts" min="0" max="10" value="1" style="width:70px" onchange="updateRules()">
+      </div>
+
+      <h4 style="color:var(--gold);font-family:var(--display);font-size:20px;font-weight:400;letter-spacing:1.5px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--line)">CRITRIO DE DESEMPATE</h4>
+      <p style="color:var(--text-secondary);margin-bottom:10px;font-size:11px">Arraste para reordenar prioridade. 1 = maior prioridade.</p>
+      <div class="tiebreak-list" id="tiebreak-list"></div>
+
+      <div class="button-group" style="margin-top:24px">
+        <button class="btn btn-outline" onclick="recalcularLotes()">RECALCULAR LOTES (MANUAL + LOG)</button>
+      </div>
+      <div class="status-msg" id="rules-status"></div>
     </div>
   </div>
 
   <div class="tab-content" id="tab-assets">
     <div class="card">
       <div class="card-title"><div class="icon">2</div>ESCOLHER ASSETS DESTA TABELA</div>
-      <p style="color:var(--text-secondary);margin-bottom:18px;font-size:12px">Os assets ficam salvos na biblioteca global. Aqui você só escolhe quais usar nesta tabela. Para adicionar novos, volte à Home.</p>
+      <p style="color:var(--text-secondary);margin-bottom:18px;font-size:12px">Os assets ficam salvos na biblioteca global. Aqui voc s escolhe quais usar nesta tabela. Para adicionar novos, volte  Home.</p>
       <div id="picker-container"></div>
     </div>
   </div>
@@ -739,20 +861,20 @@ body.editor-mode .sidebar-toggle{display:block}
 
   <div class="tab-content" id="tab-layout">
     <div class="card">
-      <div class="card-title"><div class="icon">4</div>PÁGINAS DA TABELA</div>
-      <p style="color:var(--text-secondary);margin-bottom:12px;font-size:12px">Crie uma ou várias páginas. Ex.: Página 1 = 1 ao 12, Página 2 = 13 ao 24. Ou só uma página = 1 ao 15. Cada página é baixada separadamente.</p>
+      <div class="card-title"><div class="icon">4</div>PGINAS DA TABELA</div>
+      <p style="color:var(--text-secondary);margin-bottom:12px;font-size:12px">Crie uma ou vrias pginas. Ex.: Pgina 1 = 1 ao 12, Pgina 2 = 13 ao 24.</p>
       <div class="pages-tabs" id="pages-tabs"></div>
       <div class="range-config" style="margin-top:14px">
         <label>NOME</label>
         <input type="text" id="page-name" style="width:140px;font-family:'Orbitron',sans-serif;font-size:12px" onchange="updateCurrentPage()">
         <label>DO</label>
         <input type="number" id="range-start" min="1" max="99" value="1" onchange="updateCurrentPage()">
-        <label>ATÉ</label>
+        <label>AT</label>
         <input type="number" id="range-end" min="1" max="99" value="12" onchange="updateCurrentPage()">
-        <button class="btn btn-sm btn-danger" onclick="deleteCurrentPage()">DELETAR PÁGINA</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteCurrentPage()">DELETAR PGINA</button>
       </div>
       <div style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--border-subtle)">
-        <div style="font-size:11px;color:var(--text-secondary);margin-bottom:8px;letter-spacing:1px">APLICAR NA PÁGINA ATUAL:</div>
+        <div style="font-size:11px;color:var(--text-secondary);margin-bottom:8px;letter-spacing:1px">APLICAR NA PGINA ATUAL:</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn btn-sm btn-outline" onclick="applyRangePreset(1,12)">1-12</button>
           <button class="btn btn-sm btn-outline" onclick="applyRangePreset(1,13)">1-13</button>
@@ -762,10 +884,10 @@ body.editor-mode .sidebar-toggle{display:block}
           <button class="btn btn-sm btn-outline" onclick="applyRangePreset(13,24)">13-24</button>
           <button class="btn btn-sm btn-outline" onclick="applyRangePreset(1,24)">1-24</button>
         </div>
-        <div style="font-size:11px;color:var(--text-secondary);margin:12px 0 8px;letter-spacing:1px">ATALHOS PARA CRIAR NOVA PÁGINA:</div>
+        <div style="font-size:11px;color:var(--text-secondary);margin:12px 0 8px;letter-spacing:1px">ATALHOS PARA CRIAR NOVA PGINA:</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn btn-sm" onclick="addPagePreset(1,12,'1° ao 12°')">+ 1-12</button>
-          <button class="btn btn-sm" onclick="addPagePreset(13,24,'13° ao 24°')">+ 13-24</button>
+          <button class="btn btn-sm" onclick="addPagePreset(1,12,'1 ao 12')">+ 1-12</button>
+          <button class="btn btn-sm" onclick="addPagePreset(13,24,'13 ao 24')">+ 13-24</button>
         </div>
       </div>
     </div>
@@ -782,7 +904,7 @@ body.editor-mode .sidebar-toggle{display:block}
       <div class="pages-tabs" id="preview-page-switcher" style="display:none;margin-bottom:12px"></div>
       <div class="button-group" style="margin-bottom:10px">
         <button class="btn" onclick="gerarTabela()">ATUALIZAR</button>
-        <button class="btn btn-insta" onclick="baixarInsta()">📸 INSTAGRAM</button>
+        <button class="btn btn-insta" onclick="baixarInsta()"> INSTAGRAM</button>
         <button class="btn btn-success" onclick="baixar4K()">BAIXAR 4K</button>
         <button class="btn btn-outline" onclick="baixarTodasPaginas()">BAIXAR TODAS 4K</button>
         <button class="btn btn-outline btn-whatsapp" onclick="copiarImg()">COPIAR WHATSAPP</button>
@@ -806,7 +928,7 @@ body.editor-mode .sidebar-toggle{display:block}
 <div class="modal-overlay" id="new-table-modal"><div class="modal">
   <h3>NOVA TABELA</h3>
   <label>Nome</label>
-  <input type="text" id="new-table-name" placeholder="Ex: Tabela Diário 01/12">
+  <input type="text" id="new-table-name" placeholder="Ex: Tabela Dirio 01/12">
   <div class="button-group">
     <button class="btn" onclick="confirmNewTable()">CRIAR</button>
     <button class="btn btn-outline" onclick="closeModal('new-table-modal')">CANCELAR</button>
@@ -816,7 +938,7 @@ body.editor-mode .sidebar-toggle{display:block}
 <div class="modal-overlay" id="backup-modal"><div class="modal" style="max-width:600px">
   <h3>BACKUP COMPLETO</h3>
   <p style="color:var(--text-secondary);margin-bottom:12px;font-size:12px">Exporta <strong style="color:var(--gold)">todas as tabelas e todos os assets</strong> como JSON.</p>
-  <textarea id="backup-textarea" class="dados-textarea" style="height:200px" placeholder="Código do backup..."></textarea>
+  <textarea id="backup-textarea" class="dados-textarea" style="height:200px" placeholder="Cdigo do backup..."></textarea>
   <div class="button-group">
     <button class="btn btn-backup" onclick="generateFullBackup()">EXPORTAR TUDO</button>
     <button class="btn btn-outline" onclick="document.getElementById('backup-file-input').click()">IMPORTAR ARQUIVO</button>
@@ -830,7 +952,7 @@ body.editor-mode .sidebar-toggle{display:block}
 <div class="modal-overlay" id="merge-modal"><div class="modal">
   <h3>FUNDIR EQUIPES</h3>
   <label>Principal</label><select id="merge-primary"></select>
-  <label>Secundária (será removida)</label><select id="merge-secondary"></select>
+  <label>Secundria (ser removida)</label><select id="merge-secondary"></select>
   <div class="button-group">
     <button class="btn" onclick="executeMerge()">FUNDIR</button>
     <button class="btn btn-outline" onclick="closeModal('merge-modal')">CANCELAR</button>
@@ -838,7 +960,7 @@ body.editor-mode .sidebar-toggle{display:block}
 </div></div>
 
 <div class="modal-overlay" id="country-modal"><div class="modal">
-  <h3>SELECIONAR PAÍS</h3>
+  <h3>SELECIONAR PAS</h3>
   <input type="text" class="search-input" id="country-search" placeholder="Buscar..." oninput="filterCountries()">
   <div id="country-list" style="max-height:400px;overflow-y:auto"></div>
   <div class="button-group" style="margin-top:12px"><button class="btn btn-outline" onclick="closeModal('country-modal')">FECHAR</button></div>
@@ -858,11 +980,14 @@ body.editor-mode .sidebar-toggle{display:block}
   </div>
 </div></div>
 
-<div class="kbd-hint">PRESS <kbd>N</kbd> NOVA TABELA · <kbd>/</kbd> BUSCAR · <kbd>ESC</kbd> VOLTAR</div>
+<div class="kbd-hint">PRESS <kbd>N</kbd> NOVA TABELA  <kbd>/</kbd> BUSCAR  <kbd>ESC</kbd> VOLTAR</div>
 
 <script>
 /* ============================================================
-   SLMM SYSTEM 1.0 - Multi-table with global assets
+   SLMM SYSTEM 1.1 - Multi-table with global assets
+   + MatchResult.log parser
+   + Manual sala mode
+   + Rules tab (per-table scoring rules)
    ============================================================ */
 
 /* ============================================================
@@ -893,11 +1018,9 @@ async function sbRest(path,opts={}){
 
 const publicUrl=path=>SUPABASE_URL+'/storage/v1/object/public/'+BUCKET+'/'+path;
 
-// Convert DB row -> in-memory format used by app
 function rowToTable(r){return {id:r.id,name:r.name,pinned:!!r.pinned,createdAt:Number(r.created_at),updatedAt:Number(r.updated_at),data:r.data}}
 function rowToAsset(r){return {id:r.id,type:r.type,name:r.name,storage_path:r.storage_path,createdAt:Number(r.created_at),data:publicUrl(r.storage_path)}}
 
-// Compatibility wrappers (so existing call sites keep working)
 async function dbAll(store){
   if(store===ST_TABLES){const rows=await sbRest('tables?select=*&order=updated_at.desc');return (rows||[]).map(rowToTable)}
   if(store===ST_ASSETS){const rows=await sbRest('assets?select=*&order=created_at.desc');return (rows||[]).map(rowToAsset)}
@@ -911,7 +1034,6 @@ async function dbPut(store,obj){
     return;
   }
   if(store===ST_ASSETS){
-    // Asset metadata is saved by uploadAssets directly with sbRest. This wrapper isn't really used.
     const body={id:obj.id,type:obj.type,name:obj.name,storage_path:obj.storage_path,created_at:obj.createdAt};
     await sbRest('assets',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(body)});
     return;
@@ -921,7 +1043,6 @@ async function dbPut(store,obj){
 async function dbDel(store,id){
   if(store===ST_TABLES){await sbRest('tables?id=eq.'+encodeURIComponent(id),{method:'DELETE',headers:{'Prefer':'return=minimal'}});return}
   if(store===ST_ASSETS){
-    // also delete file from storage
     const a=assets.find(x=>x.id===id);
     if(a&&a.storage_path){
       try{await fetch(SUPABASE_URL+'/storage/v1/object/'+BUCKET+'/'+a.storage_path,{method:'DELETE',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}})}catch(e){}
@@ -931,7 +1052,6 @@ async function dbDel(store,id){
   }
 }
 
-// no-ops kept for backwards compat
 async function dbGet(){return null}
 async function dbClear(){}
 
@@ -944,12 +1064,19 @@ const ASSET_TYPES=[
   {key:'fundo',label:'FUNDOS',hint:'Background da tabela'},
   {key:'efeito',label:'EFEITOS / FX',hint:'Overlay PNG transparente'},
   {key:'logo',label:'LOGO DO TOPO',hint:'Logo do evento'},
-  {key:'titulo',label:'TÍTULOS',hint:'Imagem de título'},
-  {key:'header',label:'HEADERS',hint:'Cabeçalho de colunas'},
+  {key:'titulo',label:'TTULOS',hint:'Imagem de ttulo'},
+  {key:'header',label:'HEADERS',hint:'Cabealho de colunas'},
   {key:'barra',label:'BARRAS',hint:'Barras de fundo das linhas'},
-  {key:'parceiros',label:'PARCEIROS / RODAPÉS',hint:'Rodapé de patrocínio'}
+  {key:'parceiros',label:'PARCEIROS / RODAPS',hint:'Rodap de patrocnio'}
 ];
 let currentAssetTab='logo-team';
+
+/* ======== DEFAULT RULES ======== */
+const DEFAULT_RULES={
+  posPoints:[12,9,8,7,6,5,4,3,2,1,0,0],
+  killPoints:1,
+  tiebreak:['pts','booyah','kills'] // order of priority
+};
 
 /* ======== GLOBAL STATE ======== */
 let tables=[];
@@ -957,12 +1084,39 @@ let assets=[];
 let currentTable=null;
 let meta={id:'app',currentTableId:null};
 
-let state={teams:{},lotes:[],controls:{},pages:[{name:'Página 1',start:1,end:12}],currentPageIdx:0,columnOrder:['pts','kills','booyah','matches','group'],assetRefs:{}};
+let state={teams:{},lotes:[],controls:{},pages:[{name:'Pgina 1',start:1,end:12}],currentPageIdx:0,columnOrder:['pts','kills','booyah','matches','group'],assetRefs:{},rules:null};
 
 let saveTimer=null;
 let currentCountryTeam=null;
 
-const countries=[{code:'af',name:'Afeganistão'},{code:'za',name:'África do Sul'},{code:'al',name:'Albânia'},{code:'de',name:'Alemanha'},{code:'ao',name:'Angola'},{code:'sa',name:'Arábia Saudita'},{code:'ar',name:'Argentina'},{code:'au',name:'Austrália'},{code:'at',name:'Áustria'},{code:'be',name:'Bélgica'},{code:'bo',name:'Bolívia'},{code:'br',name:'Brasil'},{code:'bg',name:'Bulgária'},{code:'ca',name:'Canadá'},{code:'cl',name:'Chile'},{code:'cn',name:'China'},{code:'co',name:'Colômbia'},{code:'kr',name:'Coreia do Sul'},{code:'cr',name:'Costa Rica'},{code:'hr',name:'Croácia'},{code:'cu',name:'Cuba'},{code:'dk',name:'Dinamarca'},{code:'eg',name:'Egito'},{code:'sv',name:'El Salvador'},{code:'ec',name:'Equador'},{code:'es',name:'Espanha'},{code:'us',name:'Estados Unidos'},{code:'fi',name:'Finlândia'},{code:'fr',name:'França'},{code:'gr',name:'Grécia'},{code:'gt',name:'Guatemala'},{code:'hn',name:'Honduras'},{code:'nl',name:'Holanda'},{code:'hk',name:'Hong Kong'},{code:'hu',name:'Hungria'},{code:'in',name:'Índia'},{code:'id',name:'Indonésia'},{code:'ie',name:'Irlanda'},{code:'is',name:'Islândia'},{code:'il',name:'Israel'},{code:'it',name:'Itália'},{code:'jm',name:'Jamaica'},{code:'jp',name:'Japão'},{code:'mx',name:'México'},{code:'no',name:'Noruega'},{code:'nz',name:'Nova Zelândia'},{code:'pa',name:'Panamá'},{code:'py',name:'Paraguai'},{code:'pe',name:'Peru'},{code:'pl',name:'Polônia'},{code:'pt',name:'Portugal'},{code:'gb',name:'Reino Unido'},{code:'do',name:'Rep. Dominicana'},{code:'cz',name:'Rep. Tcheca'},{code:'ro',name:'Romênia'},{code:'ru',name:'Rússia'},{code:'sg',name:'Singapura'},{code:'se',name:'Suécia'},{code:'ch',name:'Suíça'},{code:'th',name:'Tailândia'},{code:'tw',name:'Taiwan'},{code:'tr',name:'Turquia'},{code:'ua',name:'Ucrânia'},{code:'uy',name:'Uruguai'},{code:'ve',name:'Venezuela'},{code:'vn',name:'Vietnã'}];
+const countries=[{code:'af',name:'Afeganisto'},{code:'za',name:'frica do Sul'},{code:'al',name:'Albnia'},{code:'de',name:'Alemanha'},{code:'ao',name:'Angola'},{code:'sa',name:'Arbia Saudita'},{code:'ar',name:'Argentina'},{code:'au',name:'Austrlia'},{code:'at',name:'ustria'},{code:'be',name:'Blgica'},{code:'bo',name:'Bolvia'},{code:'br',name:'Brasil'},{code:'bg',name:'Bulgria'},{code:'ca',name:'Canad'},{code:'cl',name:'Chile'},{code:'cn',name:'China'},{code:'co',name:'Colmbia'},{code:'kr',name:'Coreia do Sul'},{code:'cr',name:'Costa Rica'},{code:'hr',name:'Crocia'},{code:'cu',name:'Cuba'},{code:'dk',name:'Dinamarca'},{code:'eg',name:'Egito'},{code:'sv',name:'El Salvador'},{code:'ec',name:'Equador'},{code:'es',name:'Espanha'},{code:'us',name:'Estados Unidos'},{code:'fi',name:'Finlndia'},{code:'fr',name:'Frana'},{code:'gr',name:'Grcia'},{code:'gt',name:'Guatemala'},{code:'hn',name:'Honduras'},{code:'nl',name:'Holanda'},{code:'hk',name:'Hong Kong'},{code:'hu',name:'Hungria'},{code:'in',name:'ndia'},{code:'id',name:'Indonsia'},{code:'ie',name:'Irlanda'},{code:'is',name:'Islndia'},{code:'il',name:'Israel'},{code:'it',name:'Itlia'},{code:'jm',name:'Jamaica'},{code:'jp',name:'Japo'},{code:'mx',name:'Mxico'},{code:'no',name:'Noruega'},{code:'nz',name:'Nova Zelndia'},{code:'pa',name:'Panam'},{code:'py',name:'Paraguai'},{code:'pe',name:'Peru'},{code:'pl',name:'Polnia'},{code:'pt',name:'Portugal'},{code:'gb',name:'Reino Unido'},{code:'do',name:'Rep. Dominicana'},{code:'cz',name:'Rep. Tcheca'},{code:'ro',name:'Romnia'},{code:'ru',name:'Rssia'},{code:'sg',name:'Singapura'},{code:'se',name:'Sucia'},{code:'ch',name:'Sua'},{code:'th',name:'Tailndia'},{code:'tw',name:'Taiwan'},{code:'tr',name:'Turquia'},{code:'ua',name:'Ucrnia'},{code:'uy',name:'Uruguai'},{code:'ve',name:'Venezuela'},{code:'vn',name:'Vietn'}];
+
+/* ======== RULES HELPERS ======== */
+function getRules(){
+  return state.rules||JSON.parse(JSON.stringify(DEFAULT_RULES));
+}
+
+function calcPointsFromRules(rank,kills){
+  const rules=getRules();
+  const posIdx=rank-1;
+  const posPts=(posIdx>=0&&posIdx<rules.posPoints.length)?rules.posPoints[posIdx]:0;
+  const killPts=(kills||0)*(rules.killPoints||1);
+  return posPts+killPts;
+}
+
+function sortTeamsByRules(teamsObj){
+  const rules=getRules();
+  const tb=rules.tiebreak||['pts','booyah','kills'];
+  const arr=Object.values(teamsObj);
+  arr.sort((a,b)=>{
+    for(const crit of tb){
+      const va=a[crit]||0,vb=b[crit]||0;
+      if(vb!==va)return vb-va;
+    }
+    return 0;
+  });
+  return arr;
+}
 
 /* ======== INIT ======== */
 async function init(){
@@ -970,7 +1124,7 @@ async function init(){
     tables=await dbAll(ST_TABLES);
     assets=await dbAll(ST_ASSETS);
   }catch(e){
-    alert('Erro ao conectar no servidor:\n'+e.message+'\n\nVerifique sua conexão e recarregue a página.');
+    alert('Erro ao conectar no servidor:\n'+e.message+'\n\nVerifique sua conexo e recarregue a pgina.');
     return;
   }
   renderHome();
@@ -980,7 +1134,6 @@ async function init(){
   setupAssetDragDrop();
   updateStorageInfo();
   tickClock();setInterval(tickClock,1000);
-  // periodic refresh on home (simulates live sync for 1-2 users)
   setInterval(async()=>{
     if(document.body.classList.contains('editor-mode'))return;
     try{
@@ -1019,7 +1172,7 @@ function renderTablesList(){
   const area=document.getElementById('home-tables-area');
   const q=(document.getElementById('home-search')?.value||'').toLowerCase().trim();
   if(!tables.length){
-    area.innerHTML='<div class="empty-home"><div class="big-icon">⊞</div><p>Nenhuma tabela ainda</p><p style="font-size:14px;font-family:var(--mono);color:var(--ink-mute);letter-spacing:1px;margin-top:8px">CLIQUE EM + NOVA TABELA</p></div>';
+    area.innerHTML='<div class="empty-home"><div class="big-icon"></div><p>Nenhuma tabela ainda</p><p style="font-size:14px;font-family:var(--mono);color:var(--ink-mute);letter-spacing:1px;margin-top:8px">CLIQUE EM + NOVA TABELA</p></div>';
     return;
   }
   let list=[...tables];
@@ -1029,27 +1182,27 @@ function renderTablesList(){
     if(pa!==pb)return pb-pa;
     return b.updatedAt-a.updatedAt;
   });
-  if(!list.length){area.innerHTML='<div class="empty-home"><div class="big-icon">⌕</div><p>Nada encontrado</p></div>';return}
+  if(!list.length){area.innerHTML='<div class="empty-home"><div class="big-icon"></div><p>Nada encontrado</p></div>';return}
   area.innerHTML='<div class="table-grid">'+list.map(t=>{
     const teamCount=Object.keys(t.data.teams||{}).length;
     const loteCount=(t.data.lotes||[]).length;
     const pageCount=(t.data.pages||[]).length||1;
     return `<div class="table-card">
-      <button class="tc-pin${t.pinned?' pinned':''}" onclick="togglePin('${t.id}',event)" title="Fixar">${t.pinned?'★':'☆'}</button>
+      <button class="tc-pin${t.pinned?' pinned':''}" onclick="togglePin('${t.id}',event)" title="Fixar">${t.pinned?'':''}</button>
       <div class="tc-body" onclick="openTable('${t.id}')">
         <div class="tc-name">${escapeHtml(t.name)}</div>
-        <div class="tc-meta">ATUALIZADA · ${fmtDate(t.updatedAt)}</div>
+        <div class="tc-meta">ATUALIZADA  ${fmtDate(t.updatedAt)}</div>
         <div class="tc-stats">
           <div><span>EQUIPES</span><strong>${teamCount}</strong></div>
           <div><span>LOTES</span><strong>${loteCount}</strong></div>
-          <div><span>PÁGS</span><strong>${pageCount}</strong></div>
+          <div><span>PGS</span><strong>${pageCount}</strong></div>
         </div>
       </div>
       <div class="tc-actions">
         <button onclick="openTable('${t.id}')">ABRIR</button>
         <button onclick="duplicateTable('${t.id}')">CLONAR</button>
         <button onclick="renameTablePrompt('${t.id}')">RENOMEAR</button>
-        <button class="danger" onclick="deleteTable('${t.id}')">×</button>
+        <button class="danger" onclick="deleteTable('${t.id}')"></button>
       </div>
     </div>`;
   }).join('')+'<div class="new-table-card" onclick="createNewTable()"><div class="plus">+</div><strong>NOVA TABELA</strong></div></div>';
@@ -1083,9 +1236,9 @@ function tickClock(){
   el.textContent=pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
   const ds=document.getElementById('live-date');
   if(ds){
-    const dias=['DOM','SEG','TER','QUA','QUI','SEX','SÁB'];
+    const dias=['DOM','SEG','TER','QUA','QUI','SEX','SB'];
     const meses=['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
-    ds.textContent=dias[d.getDay()]+' · '+pad(d.getDate())+' '+meses[d.getMonth()]+' '+d.getFullYear();
+    ds.textContent=dias[d.getDay()]+'  '+pad(d.getDate())+' '+meses[d.getMonth()]+' '+d.getFullYear();
   }
 }
 
@@ -1095,7 +1248,7 @@ function createNewTable(){document.getElementById('new-table-name').value='Tabel
 async function confirmNewTable(){
   const name=document.getElementById('new-table-name').value.trim();
   if(!name)return alert('Digite um nome');
-  const t={id:uid(),name,createdAt:Date.now(),updatedAt:Date.now(),data:{teams:{},lotes:[],controls:{},pages:[{name:'Página 1',start:1,end:12}],currentPageIdx:0,columnOrder:['pts','kills','booyah','matches','group'],assetRefs:{teamLogos:{}}}};
+  const t={id:uid(),name,createdAt:Date.now(),updatedAt:Date.now(),data:{teams:{},lotes:[],controls:{},pages:[{name:'Pgina 1',start:1,end:12}],currentPageIdx:0,columnOrder:['pts','kills','booyah','matches','group'],assetRefs:{teamLogos:{}},rules:JSON.parse(JSON.stringify(DEFAULT_RULES))}};
   tables.push(t);
   await dbPut(ST_TABLES,t);
   closeModal('new-table-modal');
@@ -1106,18 +1259,19 @@ async function confirmNewTable(){
 async function openTable(id){
   const t=tables.find(x=>x.id===id);if(!t)return;
   currentTable=t;
-  // load runtime state
   state.teams=t.data.teams||{};
   state.lotes=t.data.lotes||[];
   state.controls=t.data.controls||{};
-  // migrate old "range" format to new "pages" format
   if(t.data.pages&&Array.isArray(t.data.pages)&&t.data.pages.length){state.pages=t.data.pages}
-  else if(t.data.range){state.pages=[{name:'Página 1',start:t.data.range.start||1,end:t.data.range.end||12}]}
-  else{state.pages=[{name:'Página 1',start:1,end:12}]}
+  else if(t.data.range){state.pages=[{name:'Pgina 1',start:t.data.range.start||1,end:t.data.range.end||12}]}
+  else{state.pages=[{name:'Pgina 1',start:1,end:12}]}
   state.currentPageIdx=Math.min(t.data.currentPageIdx||0,state.pages.length-1);
   state.columnOrder=t.data.columnOrder||['pts','kills','booyah','matches','group'];
   state.assetRefs=t.data.assetRefs||{teamLogos:{}};
   if(!state.assetRefs.teamLogos)state.assetRefs.teamLogos={};
+  // Load rules (migrate old tables)
+  state.rules=t.data.rules||JSON.parse(JSON.stringify(DEFAULT_RULES));
+  if(!state.rules.tiebreak)state.rules.tiebreak=['pts','booyah','kills'];
   meta.currentTableId=id;
   document.body.classList.add('editor-mode');
   document.getElementById('home-view').style.display='none';
@@ -1128,6 +1282,7 @@ async function openTable(id){
   renderTeamsTable();
   renderAssetPicker();
   renderColumnOrder();
+  renderRulesUI();
   applyAssetsToPreview();
   gerarTabela();
   switchTab('tab-dados',document.querySelector('[data-tab="tab-dados"]'));
@@ -1138,7 +1293,7 @@ function goHome(){document.body.classList.remove('editor-mode');document.getElem
 
 async function saveCurrentTable(){
   if(!currentTable)return;
-  currentTable.data={teams:state.teams,lotes:state.lotes,controls:state.controls,pages:state.pages,currentPageIdx:state.currentPageIdx,columnOrder:state.columnOrder,assetRefs:state.assetRefs};
+  currentTable.data={teams:state.teams,lotes:state.lotes,controls:state.controls,pages:state.pages,currentPageIdx:state.currentPageIdx,columnOrder:state.columnOrder,assetRefs:state.assetRefs,rules:state.rules};
   currentTable.updatedAt=Date.now();
   await dbPut(ST_TABLES,currentTable);
   const idx=tables.findIndex(t=>t.id===currentTable.id);if(idx>=0)tables[idx]=currentTable;
@@ -1151,7 +1306,7 @@ function showSaveIndicator(){const el=document.getElementById('save-indicator');
 async function renameCurrentTable(){if(!currentTable)return;currentTable.name=document.getElementById('table-name-input').value.trim()||'Sem nome';scheduleSave()}
 
 async function renameTablePrompt(id){const t=tables.find(x=>x.id===id);if(!t)return;const n=prompt('Novo nome:',t.name);if(n==null)return;t.name=n.trim()||t.name;t.updatedAt=Date.now();await dbPut(ST_TABLES,t);renderTablesList()}
-async function duplicateTable(id){const t=tables.find(x=>x.id===id);if(!t)return;const copy=JSON.parse(JSON.stringify(t));copy.id=uid();copy.name=t.name+' (cópia)';copy.createdAt=Date.now();copy.updatedAt=Date.now();tables.push(copy);await dbPut(ST_TABLES,copy);renderTablesList()}
+async function duplicateTable(id){const t=tables.find(x=>x.id===id);if(!t)return;const copy=JSON.parse(JSON.stringify(t));copy.id=uid();copy.name=t.name+' (cpia)';copy.createdAt=Date.now();copy.updatedAt=Date.now();tables.push(copy);await dbPut(ST_TABLES,copy);renderTablesList()}
 async function deleteTable(id){const t=tables.find(x=>x.id===id);if(!t)return;if(!confirm('Deletar "'+t.name+'"?'))return;await dbDel(ST_TABLES,id);tables=tables.filter(x=>x.id!==id);renderTablesList()}
 
 /* ============================================================
@@ -1171,8 +1326,8 @@ function selectAssetTab(k){currentAssetTab=k;renderAssetTabs();renderAssetGrid()
 function renderAssetGrid(){
   const grid=document.getElementById('asset-grid');
   const list=assets.filter(a=>a.type===currentAssetTab);
-  if(!list.length){grid.innerHTML='<div class="empty-home" style="grid-column:1/-1"><div class="big-icon">🖼️</div><p>Nenhum asset deste tipo. Envie arquivos acima.</p></div>';return}
-  grid.innerHTML=list.map(a=>`<div class="asset-card"><button class="del" onclick="deleteAsset('${a.id}')">×</button><img src="${a.data}" alt=""><small>${escapeHtml(a.name)}</small></div>`).join('');
+  if(!list.length){grid.innerHTML='<div class="empty-home" style="grid-column:1/-1"><div class="big-icon"></div><p>Nenhum asset deste tipo. Envie arquivos acima.</p></div>';return}
+  grid.innerHTML=list.map(a=>`<div class="asset-card"><button class="del" onclick="deleteAsset('${a.id}')"></button><img src="${a.data}" alt=""><small>${escapeHtml(a.name)}</small></div>`).join('');
 }
 
 function setupAssetDragDrop(){
@@ -1191,13 +1346,11 @@ async function uploadAssets(files){
   for(const f of files){
     try{
       const dataUrl=await compressImageFile(f,currentAssetTab);
-      // dataUrl -> blob
       const blob=await(await fetch(dataUrl)).blob();
       const ext=blob.type==='image/jpeg'?'jpg':'png';
       const id=uid();
       const safeName=f.name.replace(/[^\w.-]/g,'_').replace(/\.[^/.]+$/,'');
       const storage_path=currentAssetTab+'/'+id+'.'+ext;
-      // upload to storage
       const upR=await fetch(SUPABASE_URL+'/storage/v1/object/'+BUCKET+'/'+storage_path,{
         method:'POST',
         headers:{
@@ -1209,7 +1362,6 @@ async function uploadAssets(files){
         body:blob
       });
       if(!upR.ok){throw new Error('Storage upload: '+upR.status+' '+await upR.text())}
-      // save metadata in DB
       const createdAt=Date.now();
       await sbRest('assets',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({id,type:currentAssetTab,name:safeName,storage_path,created_at:createdAt})});
       assets.push({id,type:currentAssetTab,name:safeName,storage_path,createdAt,data:publicUrl(storage_path)});
@@ -1246,10 +1398,9 @@ function compressImageFile(file,type){
 }
 
 async function deleteAsset(id){
-  if(!confirm('Deletar este asset? Tabelas que o usam perderão a referência.'))return;
+  if(!confirm('Deletar este asset? Tabelas que o usam perdero a referncia.'))return;
   await dbDel(ST_ASSETS,id);
   assets=assets.filter(a=>a.id!==id);
-  // cleanup refs in all tables
   for(const t of tables){
     let dirty=false;
     const ar=t.data.assetRefs||{};
@@ -1281,10 +1432,10 @@ const SLOT_TYPES=[
   {slot:'fundo',type:'fundo',label:'FUNDO'},
   {slot:'efeito',type:'efeito',label:'EFEITO / FX'},
   {slot:'logo',type:'logo',label:'LOGO DO TOPO'},
-  {slot:'titulo',type:'titulo',label:'TÍTULO'},
+  {slot:'titulo',type:'titulo',label:'TTULO'},
   {slot:'header',type:'header',label:'HEADER'},
-  {slot:'parceiros',type:'parceiros',label:'RODAPÉ / PARCEIROS'},
-  {slot:'barra1',type:'barra',label:'BARRA 1 (ou BARRA ÚNICA)'},
+  {slot:'parceiros',type:'parceiros',label:'RODAP / PARCEIROS'},
+  {slot:'barra1',type:'barra',label:'BARRA 1 (ou BARRA NICA)'},
   {slot:'barra2',type:'barra',label:'BARRA 2 (meio)'},
   {slot:'barra3',type:'barra',label:'BARRA 3 (fundo)'}
 ];
@@ -1294,7 +1445,7 @@ function renderAssetPicker(){
   c.innerHTML=SLOT_TYPES.map(s=>{
     const list=assets.filter(a=>a.type===s.type);
     const sel=state.assetRefs[s.slot];
-    const items=['<div class="picker-item clear-item'+(sel?'':' selected')+'" onclick="setSlotAsset(\''+s.slot+'\',null)">— NENHUM —</div>']
+    const items=['<div class="picker-item clear-item'+(sel?'':' selected')+'" onclick="setSlotAsset(\''+s.slot+'\',null)"> NENHUM </div>']
       .concat(list.map(a=>`<div class="picker-item${sel===a.id?' selected':''}" onclick="setSlotAsset('${s.slot}','${a.id}')"><img src="${a.data}"><small>${escapeHtml(a.name)}</small></div>`));
     return `<div class="picker-section"><h4>${s.label}</h4>${list.length||sel?'<div class="picker-grid">'+items.join('')+'</div>':'<p style="color:var(--text-secondary);font-size:11px">Nenhum asset deste tipo. Adicione na Home.</p>'}</div>`;
   }).join('');
@@ -1339,7 +1490,6 @@ function applyControls(){
   const t1c=gs('top1-color')||'#FFD700',t2c=gs('top2-color')||'#C0C0C0',t3c=gs('top3-color')||'#CD7F32';
   const tw=g('top3-width')||5,to=(g('top3-opacity')||90)/100;
 
-  // column order visibility (stored in state) ALSO overrides the toggles
   const colVis=getColVisMap();
 
   document.querySelectorAll('#col-left .row').forEach(row=>{
@@ -1391,19 +1541,16 @@ function resetarControles(){
    PAGES (multiple ranges within one table)
    ============================================================ */
 function renderPagesUI(){
-  // page tabs in LAYOUT tab
   const tabs=document.getElementById('pages-tabs');
   if(tabs){
     tabs.innerHTML=state.pages.map((p,i)=>`<button class="page-tab${i===state.currentPageIdx?' active':''}" onclick="selectPage(${i})">${escapeHtml(p.name)}<br><small style="opacity:.7;font-size:9px">${p.start}-${p.end}</small></button>`).join('')+'<button class="page-tab add-page" onclick="addPage()">+ ADD</button>';
   }
-  // page editor form
   const cur=state.pages[state.currentPageIdx];
   if(cur){
     const ni=document.getElementById('page-name');if(ni)ni.value=cur.name;
     const rs=document.getElementById('range-start');if(rs)rs.value=cur.start;
     const re=document.getElementById('range-end');if(re)re.value=cur.end;
   }
-  // page switcher in preview
   const sw=document.getElementById('preview-page-switcher');
   if(sw){
     if(state.pages.length>1){
@@ -1413,11 +1560,11 @@ function renderPagesUI(){
   }
 }
 function selectPage(i){if(i<0||i>=state.pages.length)return;state.currentPageIdx=i;renderPagesUI();gerarTabela();scheduleSave()}
-function addPage(){const n=state.pages.length+1;state.pages.push({name:'Página '+n,start:1,end:12});state.currentPageIdx=state.pages.length-1;renderPagesUI();gerarTabela();scheduleSave()}
-function deleteCurrentPage(){if(state.pages.length<=1)return alert('Precisa ter pelo menos 1 página');if(!confirm('Deletar esta página?'))return;state.pages.splice(state.currentPageIdx,1);state.currentPageIdx=Math.max(0,state.currentPageIdx-1);renderPagesUI();gerarTabela();scheduleSave()}
+function addPage(){const n=state.pages.length+1;state.pages.push({name:'Pgina '+n,start:1,end:12});state.currentPageIdx=state.pages.length-1;renderPagesUI();gerarTabela();scheduleSave()}
+function deleteCurrentPage(){if(state.pages.length<=1)return alert('Precisa ter pelo menos 1 pgina');if(!confirm('Deletar esta pgina?'))return;state.pages.splice(state.currentPageIdx,1);state.currentPageIdx=Math.max(0,state.currentPageIdx-1);renderPagesUI();gerarTabela();scheduleSave()}
 function updateCurrentPage(){
   const cur=state.pages[state.currentPageIdx];if(!cur)return;
-  const name=document.getElementById('page-name').value.trim()||'Página '+(state.currentPageIdx+1);
+  const name=document.getElementById('page-name').value.trim()||'Pgina '+(state.currentPageIdx+1);
   let s=parseInt(document.getElementById('range-start').value)||1;
   let e=parseInt(document.getElementById('range-end').value)||12;
   if(s<1)s=1;if(e<s)e=s;
@@ -1440,13 +1587,11 @@ function getColVisMap(){
     if(typeof k==='string'){m[k]=true}
     else if(k&&k.key){m[k.key]=k.visible!==false}
   });
-  // ensure all 5 cols exist
   COL_DEFS.forEach(c=>{if(!(c.key in m))m[c.key]=true});
   return m;
 }
 
 function normalizeColOrder(){
-  // Accept both formats (plain string array or {key,visible} array), normalize to {key,visible}
   const seen=new Set();
   const out=[];
   for(const item of state.columnOrder){
@@ -1462,9 +1607,8 @@ function renderColumnOrder(){
   const list=document.getElementById('col-order-list');
   list.innerHTML=state.columnOrder.map((c,i)=>{
     const def=COL_DEFS.find(d=>d.key===c.key);if(!def)return '';
-    return `<div class="col-item" draggable="true" data-idx="${i}"><span class="handle">⋮⋮</span><span class="name">${def.label}</span><label class="toggle-switch"><input type="checkbox" ${c.visible?'checked':''} onchange="toggleColVis(${i},this.checked)"><span class="toggle-slider"></span></label></div>`;
+    return `<div class="col-item" draggable="true" data-idx="${i}"><span class="handle"></span><span class="name">${def.label}</span><label class="toggle-switch"><input type="checkbox" ${c.visible?'checked':''} onchange="toggleColVis(${i},this.checked)"><span class="toggle-slider"></span></label></div>`;
   }).join('');
-  // DnD
   const items=list.querySelectorAll('.col-item');
   let dragSrc=null;
   items.forEach(it=>{
@@ -1485,14 +1629,15 @@ function renderColumnOrder(){
 function toggleColVis(i,v){state.columnOrder[i].visible=v;gerarTabela();scheduleSave()}
 
 /* ============================================================
-   TABS
+   TABS & SUB-TABS
    ============================================================ */
 function switchTab(id,btn){document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));const el=document.getElementById(id);if(el)el.classList.add('active');if(btn)btn.classList.add('active')}
+function switchSubTab(id,btn){document.querySelectorAll('.sub-tab-content').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.sub-tab-btn').forEach(b=>b.classList.remove('active'));const el=document.getElementById(id);if(el)el.classList.add('active');if(btn)btn.classList.add('active')}
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebar-toggle').classList.toggle('shifted');document.getElementById('main-area').classList.toggle('sidebar-open')}
 function closeModal(id){document.getElementById(id).classList.remove('show')}
 
 /* ============================================================
-   CSV PROCESSING
+   CSV PROCESSING (original CSV parser - UNTOUCHED)
    ============================================================ */
 function parseCSV(l){const r=[];let c='',q=false;for(let i=0;i<l.length;i++){if(l[i]==='"')q=!q;else if(l[i]===','&&!q){r.push(c.trim());c=''}else c+=l[i]}r.push(c.trim());return r.map(s=>s.replace(/^"|"$/g,'').trim())}
 
@@ -1500,13 +1645,13 @@ function extrair(text){
   const lines=text.split('\n').map(l=>l.trim()).filter(l=>l);
   let hi=-1,rows=[];
   for(let i=0;i<lines.length;i++){const c=parseCSV(lines[i]);rows.push(c);if(hi===-1&&c.join('').toLowerCase().match(/team name|equipe/))hi=i}
-  if(hi===-1)throw new Error('Faltou cabeçalho com "Team Name" ou "Equipe"');
+  if(hi===-1)throw new Error('Faltou cabealho com "Team Name" ou "Equipe"');
   const h=rows[hi].map(x=>x.toLowerCase());
   const iN=h.findIndex(x=>x.includes('team name')||x.includes('equipe'));
   const iS=h.findIndex(x=>x.includes('total score')||x.includes('pontos'));
   const iB=h.findIndex(x=>x.includes('booyah'));
   const iK=h.findIndex(x=>x==='kill'||x==='kills'||x.includes('abates'));
-  if(iN<0||iS<0||iK<0)throw new Error('Faltam colunas obrigatórias');
+  if(iN<0||iS<0||iK<0)throw new Error('Faltam colunas obrigatrias');
   const data=[];
   for(let i=hi+1;i<rows.length;i++){
     const r=rows[i];if(r.length<=iN)continue;
@@ -1517,25 +1662,118 @@ function extrair(text){
   return data;
 }
 
-function aplicarLote(d,nome){
-  state.lotes.push({name:nome||'Lote '+(state.lotes.length+1),count:d.length,data:d});
-  d.forEach(t=>{
-    const k=t.name.toUpperCase();
-    if(state.teams[k]){state.teams[k].pts+=t.pts;state.teams[k].booyah+=t.booyah;state.teams[k].kills+=t.kills;state.teams[k].matches=(state.teams[k].matches||0)+1}
-    else state.teams[k]={name:t.name,pts:t.pts,booyah:t.booyah,kills:t.kills,matches:1,country:'br',group:'-'};
-  });
-  autoAssocLogos(true); // silent
+/* ============================================================
+   MATCHRESULT.LOG PARSER (NEW - Feature #1)
+   ============================================================ */
+function isMatchResultFormat(text){
+  // Detect: first non-empty line starts with "TeamName:"
+  const lines=text.split('\n').map(l=>l.trim()).filter(l=>l);
+  if(!lines.length)return false;
+  return /^TeamName\s*:/i.test(lines[0]);
 }
 
-function processarTextoCSV(){const t=document.getElementById('csv-text').value.trim();if(!t)return showStatus('csv-status','Vazio!','error');try{const d=extrair(t);aplicarLote(d);scheduleSave();renderLotes();renderTeamsTable();gerarTabela();showStatus('csv-status',d.length+' equipes processadas!','success');document.getElementById('csv-text').value=''}catch(e){showStatus('csv-status',e.message,'error')}}
+function extrairMatchResult(text){
+  /*
+    Format per team block (5 lines):
+    TeamName: TEAM_A Rank: 1 KillScore: 15 RankScore: 12 TotalScore: 27
+    NAME: Player1
+    NAME: Player2
+    NAME: Player3
+    NAME: Player4
+  */
+  const lines=text.split('\n').map(l=>l.trim()).filter(l=>l);
+  const teams=[];
+  let i=0;
+  while(i<lines.length){
+    const line=lines[i];
+    if(/^TeamName\s*:/i.test(line)){
+      // Parse the team line
+      const teamMatch=line.match(/TeamName\s*:\s*(.+?)\s+Rank\s*:\s*(\d+)/i);
+      const killMatch=line.match(/KillScore\s*:\s*(\d+)/i);
+      // RankScore and TotalScore are read but we recalculate pts using active rules
+      if(teamMatch){
+        const name=teamMatch[1].trim();
+        const rank=parseInt(teamMatch[2])||0;
+        const killScore=killMatch?parseInt(killMatch[1]):0;
+        // Calculate points using active rules
+        const pts=calcPointsFromRules(rank,killScore);
+        // Rank 1 = +1 booyah
+        const booyah=(rank===1)?1:0;
+        teams.push({name,rank,kills:killScore,pts,booyah,_source:'matchresult'});
+      }
+      // Skip 4 player NAME: lines
+      i++;
+      let skipped=0;
+      while(i<lines.length&&skipped<4){
+        if(/^NAME\s*:/i.test(lines[i])){skipped++;i++}
+        else break; // Not a NAME line, stop skipping
+      }
+    }else{
+      i++;
+    }
+  }
+  if(!teams.length)throw new Error('Nenhuma equipe encontrada no MatchResult.log');
+  return teams;
+}
+
+/* ============================================================
+   UNIFIED PROCESSOR (detects format automatically)
+   ============================================================ */
+function aplicarLote(d,nome,source){
+  // source: 'csv', 'matchresult', 'manual'
+  state.lotes.push({name:nome||'Lote '+(state.lotes.length+1),count:d.length,data:d,source:source||'csv'});
+  d.forEach(t=>{
+    const k=t.name.toUpperCase();
+    if(state.teams[k]){
+      state.teams[k].pts+=t.pts;
+      state.teams[k].booyah+=t.booyah;
+      state.teams[k].kills+=t.kills;
+      state.teams[k].matches=(state.teams[k].matches||0)+1;
+    }
+    else state.teams[k]={name:t.name,pts:t.pts,booyah:t.booyah,kills:t.kills,matches:1,country:'br',group:'-'};
+  });
+  autoAssocLogos(true);
+}
+
+function processarTextoCSV(){
+  const t=document.getElementById('csv-text').value.trim();
+  if(!t)return showStatus('csv-status','Vazio!','error');
+  try{
+    let d,source;
+    if(isMatchResultFormat(t)){
+      d=extrairMatchResult(t);
+      source='matchresult';
+    }else{
+      d=extrair(t);
+      source='csv';
+    }
+    aplicarLote(d,'Texto ('+source+')',source);
+    scheduleSave();renderLotes();renderTeamsTable();gerarTabela();
+    showStatus('csv-status',d.length+' equipes processadas! ['+source.toUpperCase()+']','success');
+    document.getElementById('csv-text').value='';
+  }catch(e){showStatus('csv-status',e.message,'error')}
+}
 
 async function processarArquivosCSV(){
   const files=[...document.getElementById('csv-files').files];
   if(!files.length)return showStatus('csv-status','Selecione arquivos!','error');
   let ok=0,er=0,tot=0;
-  for(const f of files){try{const d=extrair(await f.text());aplicarLote(d,f.name);ok++;tot+=d.length}catch(e){er++}}
+  for(const f of files){
+    try{
+      const txt=await f.text();
+      let d,source;
+      if(isMatchResultFormat(txt)){
+        d=extrairMatchResult(txt);
+        source='matchresult';
+      }else{
+        d=extrair(txt);
+        source='csv';
+      }
+      aplicarLote(d,f.name,source);ok++;tot+=d.length;
+    }catch(e){er++}
+  }
   scheduleSave();renderLotes();renderTeamsTable();gerarTabela();
-  showStatus('csv-status',ok?ok+' arquivo(s), '+tot+' registros.'+(er?' '+er+' erro(s).':''):'Nenhum arquivo válido.','success');
+  showStatus('csv-status',ok?ok+' arquivo(s), '+tot+' registros.'+(er?' '+er+' erro(s).':''):'Nenhum arquivo vlido.','success');
   document.getElementById('csv-files').value='';atualizarListaArq();
 }
 
@@ -1544,9 +1782,213 @@ function atualizarListaArq(){const f=[...document.getElementById('csv-files').fi
 function renderLotes(){
   document.getElementById('lote-count').textContent=state.lotes.length;
   const area=document.getElementById('lote-list-area');
-  area.innerHTML=state.lotes.length?'<div class="lote-list">'+state.lotes.map(l=>'<span class="lote-badge">'+escapeHtml(l.name)+' ('+l.count+')</span>').join('')+'</div>':'<div class="empty-state"><div class="big-icon">+</div><p>Nenhum lote</p></div>';
+  area.innerHTML=state.lotes.length?'<div class="lote-list">'+state.lotes.map(l=>{
+    const srcTag=l.source?(' ['+l.source.toUpperCase()+']'):'';
+    return '<span class="lote-badge">'+escapeHtml(l.name)+' ('+l.count+')'+srcTag+'</span>';
+  }).join('')+'</div>':'<div class="empty-state"><div class="big-icon">+</div><p>Nenhum lote</p></div>';
 }
 function limparTodosLotes(){if(!confirm('Apagar todas as equipes e lotes desta tabela?'))return;state.teams={};state.lotes=[];state.assetRefs.teamLogos={};scheduleSave();renderLotes();renderTeamsTable();gerarTabela()}
+
+/* ============================================================
+   MANUAL SALA MODE (NEW - Feature #2)
+   ============================================================ */
+function renderSalaTeams(){
+  const area=document.getElementById('sala-teams-area');
+  const keys=Object.keys(state.teams).sort();
+  if(!keys.length){
+    area.innerHTML='<div class="empty-state"><div class="big-icon">+</div><p>Nenhuma equipe cadastrada. Adicione na aba EQUIPES ou processe dados primeiro.</p></div>';
+    return;
+  }
+  // Header
+  let html='<div class="sala-team-row" style="background:var(--bg-2);border-color:var(--gold);font-family:var(--display);font-size:14px;color:var(--gold);letter-spacing:1.5px"><div></div><div>EQUIPE</div><div style="text-align:center">POSIO</div><div style="text-align:center">KILLS</div></div>';
+  keys.forEach(k=>{
+    const t=state.teams[k];
+    const lo=getTeamLogoData(k);
+    html+=`<div class="sala-team-row" data-team="${k}">
+      <div>${lo?'<img src="'+lo+'" class="sala-team-logo">':''}</div>
+      <div class="sala-team-name">${escapeHtml(t.name)}</div>
+      <input type="number" class="sala-pos" min="0" max="99" value="0" placeholder="Pos">
+      <input type="number" class="sala-kills" min="0" max="999" value="0" placeholder="Kills">
+    </div>`;
+  });
+  area.innerHTML=html;
+}
+
+function aplicarSalaManual(){
+  const salaName=document.getElementById('sala-name').value.trim()||'Sala '+(state.lotes.length+1);
+  const rows=document.querySelectorAll('#sala-teams-area .sala-team-row[data-team]');
+  if(!rows.length)return showStatus('sala-status','Carregue as equipes primeiro!','error');
+
+  const entries=[];
+  rows.forEach(row=>{
+    const teamKey=row.dataset.team;
+    const pos=parseInt(row.querySelector('.sala-pos').value)||0;
+    const kills=parseInt(row.querySelector('.sala-kills').value)||0;
+    if(pos>0){
+      entries.push({teamKey,pos,kills});
+    }
+  });
+
+  if(!entries.length)return showStatus('sala-status','Nenhuma equipe com posio preenchida (>0)!','error');
+
+  // Build lote data
+  const loteData=entries.map(e=>{
+    const t=state.teams[e.teamKey];
+    const pts=calcPointsFromRules(e.pos,e.kills);
+    const booyah=(e.pos===1)?1:0;
+    return {name:t.name,pts,booyah,kills:e.kills,rank:e.pos,_source:'manual'};
+  });
+
+  // Also add +1 match to teams that participated (pos > 0)
+  // Use aplicarLote which already handles +1 match
+  aplicarLote(loteData,salaName,'manual');
+  scheduleSave();renderLotes();renderTeamsTable();gerarTabela();
+  showStatus('sala-status',entries.length+' equipes aplicadas em "'+salaName+'"!','success');
+
+  // Reset inputs
+  rows.forEach(row=>{
+    const posInput=row.querySelector('.sala-pos');
+    const killsInput=row.querySelector('.sala-kills');
+    if(posInput)posInput.value='0';
+    if(killsInput)killsInput.value='0';
+  });
+  document.getElementById('sala-name').value='';
+}
+
+/* ============================================================
+   RULES TAB (NEW - Feature #3)
+   ============================================================ */
+function renderRulesUI(){
+  renderRulesPosGrid();
+  renderRulesKillPts();
+  renderTiebreakList();
+}
+
+function renderRulesPosGrid(){
+  const rules=getRules();
+  const grid=document.getElementById('rules-pos-grid');
+  if(!grid)return;
+  grid.innerHTML=rules.posPoints.map((pts,i)=>`<div class="rule-pos-cell"><div class="pos-label">${i+1}</div><input type="number" min="0" max="99" value="${pts}" onchange="updateRulePosPoints(${i},this.value)"></div>`).join('');
+}
+
+function renderRulesKillPts(){
+  const rules=getRules();
+  const el=document.getElementById('rule-kill-pts');
+  if(el)el.value=rules.killPoints||1;
+}
+
+function renderTiebreakList(){
+  const rules=getRules();
+  const TB_LABELS={pts:'PONTOS',booyah:'BOOYAH',kills:'ABATES'};
+  const list=document.getElementById('tiebreak-list');
+  if(!list)return;
+  list.innerHTML=rules.tiebreak.map((key,i)=>`<div class="tiebreak-item" draggable="true" data-idx="${i}"><span class="handle"></span><span class="tb-name">${TB_LABELS[key]||key}</span><span class="tb-num">#${i+1}</span></div>`).join('');
+
+  // DnD for tiebreak
+  const items=list.querySelectorAll('.tiebreak-item');
+  let dragSrc=null;
+  items.forEach(it=>{
+    it.addEventListener('dragstart',e=>{dragSrc=it;it.classList.add('dragging');e.dataTransfer.effectAllowed='move'});
+    it.addEventListener('dragend',()=>{it.classList.remove('dragging');items.forEach(x=>x.classList.remove('drag-over'))});
+    it.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';it.classList.add('drag-over')});
+    it.addEventListener('dragleave',()=>it.classList.remove('drag-over'));
+    it.addEventListener('drop',e=>{
+      e.preventDefault();
+      if(!dragSrc||dragSrc===it)return;
+      const from=parseInt(dragSrc.dataset.idx),to=parseInt(it.dataset.idx);
+      const rules=getRules();
+      const [moved]=rules.tiebreak.splice(from,1);
+      rules.tiebreak.splice(to,0,moved);
+      state.rules=rules;
+      renderTiebreakList();
+      gerarTabela(); // re-sort
+      scheduleSave();
+    });
+  });
+}
+
+function updateRulePosPoints(idx,val){
+  const rules=getRules();
+  rules.posPoints[idx]=parseInt(val)||0;
+  state.rules=rules;
+  scheduleSave();
+}
+
+function updateRules(){
+  const rules=getRules();
+  const kp=document.getElementById('rule-kill-pts');
+  if(kp)rules.killPoints=parseInt(kp.value)||0;
+  state.rules=rules;
+  scheduleSave();
+}
+
+function addRuleSlot(){
+  const rules=getRules();
+  rules.posPoints.push(0);
+  state.rules=rules;
+  renderRulesPosGrid();
+  scheduleSave();
+}
+
+function removeRuleSlot(){
+  const rules=getRules();
+  if(rules.posPoints.length<=1)return;
+  rules.posPoints.pop();
+  state.rules=rules;
+  renderRulesPosGrid();
+  scheduleSave();
+}
+
+function applyRulePreset(arr){
+  const rules=getRules();
+  rules.posPoints=[...arr];
+  state.rules=rules;
+  renderRulesPosGrid();
+  scheduleSave();
+}
+
+/* Recalculate lotes that were manual or matchresult (Feature #3) */
+function recalcularLotes(){
+  if(!state.lotes.length)return showStatus('rules-status','Nenhum lote para recalcular.','error');
+
+  // Reset all teams to zero
+  Object.keys(state.teams).forEach(k=>{
+    state.teams[k].pts=0;
+    state.teams[k].booyah=0;
+    state.teams[k].kills=0;
+    state.teams[k].matches=0;
+  });
+
+  let recalcCount=0;
+  state.lotes.forEach(lote=>{
+    if(lote.source==='matchresult'||lote.source==='manual'){
+      // Recalculate pts using current rules
+      lote.data.forEach(entry=>{
+        const rank=entry.rank||0;
+        const kills=entry.kills||0;
+        entry.pts=calcPointsFromRules(rank,kills);
+        entry.booyah=(rank===1)?1:0;
+      });
+      recalcCount++;
+    }
+    // CSV lotes: keep original pts/booyah as-is (re-apply them unchanged)
+    // Re-apply ALL lotes to teams
+    lote.data.forEach(t=>{
+      const k=t.name.toUpperCase();
+      if(state.teams[k]){
+        state.teams[k].pts+=t.pts;
+        state.teams[k].booyah+=t.booyah;
+        state.teams[k].kills+=t.kills;
+        state.teams[k].matches+=1;
+      }else{
+        state.teams[k]={name:t.name,pts:t.pts,booyah:t.booyah,kills:t.kills,matches:1,country:'br',group:'-'};
+      }
+    });
+  });
+
+  scheduleSave();renderTeamsTable();gerarTabela();
+  showStatus('rules-status',recalcCount+' lote(s) manual/log recalculado(s). '+state.lotes.length+' total reaplicado(s).','success');
+}
 
 /* ============================================================
    TEAMS TABLE
@@ -1558,7 +2000,18 @@ function getTeamLogoData(teamKey){
 
 function renderTeamsTable(){
   const q=(document.getElementById('team-search')?.value||'').toUpperCase();
-  const keys=Object.keys(state.teams).filter(k=>!q||k.includes(q)).sort((a,b)=>state.teams[b].pts-state.teams[a].pts||state.teams[b].booyah-state.teams[a].booyah||state.teams[b].kills-state.teams[a].kills);
+  const keys=Object.keys(state.teams).filter(k=>!q||k.includes(q));
+  // Sort using rules tiebreak
+  keys.sort((a,b)=>{
+    const ta=state.teams[a],tb_=state.teams[b];
+    const rules=getRules();
+    const tiebreak=rules.tiebreak||['pts','booyah','kills'];
+    for(const crit of tiebreak){
+      const va=ta[crit]||0,vb=tb_[crit]||0;
+      if(vb!==va)return vb-va;
+    }
+    return 0;
+  });
   document.getElementById('team-count').textContent=Object.keys(state.teams).length;
   const tb=document.getElementById('teams-tbody');
   document.getElementById('teams-empty').style.display=keys.length?'none':'block';
@@ -1593,16 +2046,15 @@ function editNum(el,k,f){const cur=state.teams[k][f]||0;const inp=document.creat
 function delTeam(k){if(confirm('Deletar '+state.teams[k].name+'?')){delete state.teams[k];delete state.assetRefs.teamLogos[k];scheduleSave();renderTeamsTable();gerarTabela()}}
 
 function openAddTeamModal(){['add-t-name','add-t-group'].forEach(x=>document.getElementById(x).value='');['add-t-matches','add-t-pts','add-t-booyah','add-t-kills'].forEach(x=>document.getElementById(x).value='0');document.getElementById('add-team-modal').classList.add('show')}
-function addManualTeam(){const n=document.getElementById('add-t-name').value.trim();if(!n)return alert('Nome!');const k=n.toUpperCase();if(state.teams[k])return alert('Já existe!');state.teams[k]={name:n,group:document.getElementById('add-t-group').value.trim()||'-',matches:parseInt(document.getElementById('add-t-matches').value)||0,pts:parseInt(document.getElementById('add-t-pts').value)||0,booyah:parseInt(document.getElementById('add-t-booyah').value)||0,kills:parseInt(document.getElementById('add-t-kills').value)||0,country:'br'};autoAssocLogos(true);scheduleSave();renderTeamsTable();gerarTabela();closeModal('add-team-modal')}
+function addManualTeam(){const n=document.getElementById('add-t-name').value.trim();if(!n)return alert('Nome!');const k=n.toUpperCase();if(state.teams[k])return alert('J existe!');state.teams[k]={name:n,group:document.getElementById('add-t-group').value.trim()||'-',matches:parseInt(document.getElementById('add-t-matches').value)||0,pts:parseInt(document.getElementById('add-t-pts').value)||0,booyah:parseInt(document.getElementById('add-t-booyah').value)||0,kills:parseInt(document.getElementById('add-t-kills').value)||0,country:'br'};autoAssocLogos(true);scheduleSave();renderTeamsTable();gerarTabela();closeModal('add-team-modal')}
 
-function openMergeModal(){const k=Object.keys(state.teams).sort();if(k.length<2)return alert('Mínimo 2 equipes');const o=k.map(x=>'<option value="'+x+'">'+escapeHtml(state.teams[x].name)+'</option>').join('');document.getElementById('merge-primary').innerHTML=o;document.getElementById('merge-secondary').innerHTML=o;document.getElementById('merge-secondary').selectedIndex=1;document.getElementById('merge-modal').classList.add('show')}
+function openMergeModal(){const k=Object.keys(state.teams).sort();if(k.length<2)return alert('Mnimo 2 equipes');const o=k.map(x=>'<option value="'+x+'">'+escapeHtml(state.teams[x].name)+'</option>').join('');document.getElementById('merge-primary').innerHTML=o;document.getElementById('merge-secondary').innerHTML=o;document.getElementById('merge-secondary').selectedIndex=1;document.getElementById('merge-modal').classList.add('show')}
 function executeMerge(){const p=document.getElementById('merge-primary').value,s=document.getElementById('merge-secondary').value;if(p===s)return;state.teams[p].pts+=state.teams[s].pts;state.teams[p].booyah+=state.teams[s].booyah;state.teams[p].kills+=state.teams[s].kills;state.teams[p].matches+=state.teams[s].matches;if(!state.assetRefs.teamLogos[p]&&state.assetRefs.teamLogos[s])state.assetRefs.teamLogos[p]=state.assetRefs.teamLogos[s];if((!state.teams[p].group||state.teams[p].group==='-')&&state.teams[s].group)state.teams[p].group=state.teams[s].group;delete state.teams[s];delete state.assetRefs.teamLogos[s];scheduleSave();renderTeamsTable();closeModal('merge-modal');gerarTabela()}
 
 function openCountryModal(k){currentCountryTeam=k;document.getElementById('country-search').value='';filterCountries();document.getElementById('country-modal').classList.add('show')}
 function filterCountries(){const norm=s=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();const q=norm(document.getElementById('country-search').value);document.getElementById('country-list').innerHTML=countries.filter(c=>norm(c.name).includes(q)||c.code.includes(q)).map(c=>'<div style="display:flex;align-items:center;gap:10px;padding:8px;cursor:pointer;border-radius:6px" onmouseover="this.style.background=\'var(--bg-dark)\'" onmouseout="this.style.background=\'\'" onclick="selectCountry(\''+c.code+'\')"><img src="https://flagcdn.com/w40/'+c.code+'.png" style="width:30px;border-radius:2px"><span>'+c.name+'</span></div>').join('')}
 function selectCountry(c){if(currentCountryTeam){state.teams[currentCountryTeam].country=c;scheduleSave();renderTeamsTable();gerarTabela()}closeModal('country-modal')}
 
-/* auto-associate team logos by name match (fuzzy) */
 function autoAssocLogos(silent){
   const norm=s=>s.toUpperCase().replace(/[^A-Z0-9]/g,'');
   const logoList=assets.filter(a=>a.type==='logo-team');
@@ -1610,23 +2062,23 @@ function autoAssocLogos(silent){
   Object.keys(state.teams).forEach(k=>{
     if(state.assetRefs.teamLogos[k])return;
     const nk=norm(k);
-    // exact, then contains
     let found=logoList.find(a=>norm(a.name)===nk);
     if(!found)found=logoList.find(a=>norm(a.name).includes(nk)||nk.includes(norm(a.name)));
     if(found){state.assetRefs.teamLogos[k]=found.id;n++}
   });
   if(n){scheduleSave();if(!silent){renderTeamsTable();gerarTabela();alert(n+' logo(s) associada(s) automaticamente.')}}
-  else if(!silent)alert('Nenhum match automático encontrado. Verifique os nomes dos arquivos das logos.');
+  else if(!silent)alert('Nenhum match automtico encontrado. Verifique os nomes dos arquivos das logos.');
 }
 
 /* ============================================================
-   GERAR TABELA (range-based)
+   GERAR TABELA (range-based, uses rules tiebreak for sorting)
    ============================================================ */
 function gerarTabela(){
   const cl=document.getElementById('col-left');if(!cl)return;
   const headerData=getAssetData(state.assetRefs.header);
   cl.innerHTML=headerData?'<img src="'+headerData+'" class="table-header-strip">':'';
-  const sorted=Object.values(state.teams).sort((a,b)=>b.pts-a.pts||b.booyah-a.booyah||b.kills-a.kills);
+  // Sort using rules tiebreak
+  const sorted=sortTeamsByRules(state.teams);
   const sameBar=document.getElementById('ctrl-same-bar')?.checked||false;
   const curPage=state.pages[state.currentPageIdx]||{start:1,end:12};
   const start=Math.max(1,curPage.start||1);
@@ -1668,7 +2120,7 @@ function baixar4K(){html2canvas(document.getElementById('obs-screen'),{useCORS:t
 async function baixarTodasPaginas(){
   if(!state.pages.length)return;
   const originalIdx=state.currentPageIdx;
-  showStatus('gerar-status','Gerando '+state.pages.length+' páginas...','success');
+  showStatus('gerar-status','Gerando '+state.pages.length+' pginas...','success');
   for(let i=0;i<state.pages.length;i++){
     state.currentPageIdx=i;renderPagesUI();gerarTabela();
     await new Promise(r=>setTimeout(r,400));
@@ -1677,9 +2129,9 @@ async function baixarTodasPaginas(){
     await new Promise(r=>setTimeout(r,300));
   }
   state.currentPageIdx=originalIdx;renderPagesUI();gerarTabela();
-  showStatus('gerar-status','Todas as páginas baixadas!','success');
+  showStatus('gerar-status','Todas as pginas baixadas!','success');
 }
-function copiarImg(){html2canvas(document.getElementById('obs-screen'),{useCORS:true,allowTaint:true,logging:false,backgroundColor:null,scale:3}).then(c=>{c.toBlob(bl=>{try{navigator.clipboard.write([new ClipboardItem({'image/png':bl})]).then(()=>showStatus('gerar-status','Copiado!','success')).catch(()=>showStatus('gerar-status','Erro ao copiar','error'))}catch(e){showStatus('gerar-status','Navegador não suporta','error')}},'image/png',1)})}
+function copiarImg(){html2canvas(document.getElementById('obs-screen'),{useCORS:true,allowTaint:true,logging:false,backgroundColor:null,scale:3}).then(c=>{c.toBlob(bl=>{try{navigator.clipboard.write([new ClipboardItem({'image/png':bl})]).then(()=>showStatus('gerar-status','Copiado!','success')).catch(()=>showStatus('gerar-status','Erro ao copiar','error'))}catch(e){showStatus('gerar-status','Navegador no suporta','error')}},'image/png',1)})}
 function showStatus(id,msg,type){const el=document.getElementById(id);if(!el)return;el.textContent=msg;el.className='status-msg '+type;setTimeout(()=>el.className='status-msg',4000)}
 
 /* ============================================================
@@ -1694,12 +2146,12 @@ async function importFullBackup(){
   try{
     const i=JSON.parse(s);
     if(!i.tables||!Array.isArray(i.tables))throw 0;
-    if(!confirm('Importar '+i.tables.length+' tabela(s)? Tabelas com mesmo ID serão sobrescritas. Assets NÃO são importados (eles ficam na biblioteca em nuvem).'))return;
+    if(!confirm('Importar '+i.tables.length+' tabela(s)? Tabelas com mesmo ID sero sobrescritas. Assets NO so importados (eles ficam na biblioteca em nuvem).'))return;
     for(const t of i.tables){await dbPut(ST_TABLES,t)}
     tables=await dbAll(ST_TABLES);
     showStatus('backup-status','Importado!','success');
     setTimeout(()=>{closeModal('backup-modal');renderHome()},800);
-  }catch(e){showStatus('backup-status','JSON inválido','error')}
+  }catch(e){showStatus('backup-status','JSON invlido','error')}
 }
 
 window.addEventListener('load',init);
