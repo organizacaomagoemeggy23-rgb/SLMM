@@ -1237,6 +1237,9 @@ function doOpenTable(id, editUnlocked){
   state.tablePass=t.data.tablePass||null;
   state.editUnlocked=editUnlocked||!state.tablePass;
 
+  // Modo Sala Normal: garantir que state.teams sempre reflita os grupos cadastrados
+  if(state.tableType==='sala') snSyncTeams();
+
   document.body.classList.add('editor-mode');
   document.getElementById('home-view').style.display='none';
   document.getElementById('table-name-input').value=t.name;
@@ -1481,6 +1484,8 @@ function goHome(){document.body.classList.remove('editor-mode');document.getElem
 
 async function saveCurrentTable(){
   if(!currentTable)return;
+  // Modo Sala Normal: garantir sincronização antes de salvar
+  if(state.tableType==='sala') snSyncTeams();
   currentTable.data={
     teams:state.teams,lotes:state.lotes,controls:state.controls,
     pages:state.pages,currentPageIdx:state.currentPageIdx,
@@ -1901,6 +1906,7 @@ function snAplicarConfronto(){
     totalApplied+=entries.length;
   }
 
+  snSyncTeams();
   scheduleSave();snRenderGrupos();renderTeamsTable();gerarTabela();snRenderLotes();renderLotes();
   showStatus('sn-confronto-status',totalApplied+' entradas aplicadas!','success');
 
@@ -1916,14 +1922,37 @@ function snRenderLotes(){
   area.innerHTML=state.snLotes.length?'<div class="lote-list">'+state.snLotes.map(l=>'<span class="lote-badge">'+escapeHtml(l.name)+' ('+l.count+')</span>').join('')+'</div>':'<div class="empty-state"><div class="big-icon">📋</div><p>Nenhum lote</p></div>';
 }
 
+function snSyncTeams(){
+  // Garante que state.teams reflita exatamente os grupos — equipes cadastradas nunca somem
+  // Preserva pontuação existente, só adiciona times que faltam
+  for(const g of ['A','B','C','D']){
+    (state.snGrupos[g]||[]).forEach(t=>{
+      const key=t.name.toUpperCase();
+      if(!state.teams[key]){
+        // Time existe no grupo mas não em state.teams — reinsere
+        state.teams[key]={name:t.name,pts:t.pts||0,booyah:t.booyah||0,kills:t.kills||0,matches:t.matches||0,country:t.country||'br',group:g};
+      } else {
+        // Sincroniza grupo e country do snGrupos → teams
+        state.teams[key].group=g;
+      }
+    });
+  }
+  // Remove de state.teams times que não existem em nenhum grupo (modo sala)
+  const allKeys=new Set();
+  for(const g of ['A','B','C','D'])(state.snGrupos[g]||[]).forEach(t=>allKeys.add(t.name.toUpperCase()));
+  Object.keys(state.teams).forEach(k=>{if(!allKeys.has(k))delete state.teams[k]});
+}
+
 function snLimparLotes(){
   if(!confirm('Apagar pontuação de todas as equipes nesta planilha?'))return;
   state.snLotes=[];state.lotes=[];
-  state.teams={};
-  // Resetar pontos nos grupos
+  // Resetar pontos nos grupos E em state.teams — mas manter os times cadastrados
   for(const g of ['A','B','C','D']){
     (state.snGrupos[g]||[]).forEach(t=>{t.pts=0;t.booyah=0;t.kills=0;t.matches=0});
   }
+  // Reconstruir state.teams a partir dos grupos (com pontos zerados)
+  state.teams={};
+  snSyncTeams();
   scheduleSave();snRenderGrupos();renderTeamsTable();gerarTabela();snRenderLotes();renderLotes();
 }
 
