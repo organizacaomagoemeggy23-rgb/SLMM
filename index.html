@@ -513,7 +513,7 @@ body.editor-mode .sidebar-toggle{display:block}
 <body>
 
 <!-- ===== TELA DE BLOQUEIO GLOBAL ===== -->
-<div class="lock-screen" id="global-lock-screen">
+<div class="lock-screen hidden" id="global-lock-screen">
   <div class="lock-box">
     <div class="lock-icon">🔒</div>
     <h2>SLMM SYSTEM</h2>
@@ -526,7 +526,7 @@ body.editor-mode .sidebar-toggle{display:block}
 </div>
 
 <!-- ===== HOME ===== -->
-<div class="home" id="home-view" style="display:none">
+<div class="home" id="home-view">
   <div class="home-header">
     <div class="brand">
       <span class="eyebrow"><span class="live-dot"></span>SLMM CONTROL ROOM  v1.2</span>
@@ -669,6 +669,21 @@ body.editor-mode .sidebar-toggle{display:block}
     <h3>RODAPÉ</h3>
     <div class="control-row"><label>Pos. Bottom</label><input type="range" min="0" max="300" value="20" id="ctrl-parceiros-y" oninput="updateControl()"><span class="val" id="val-parceiros-y">20</span></div>
     <div class="control-row"><label>Largura %</label><input type="range" min="20" max="100" value="90" id="ctrl-parceiros-w" oninput="updateControl()"><span class="val" id="val-parceiros-w">90</span></div>
+  </div>
+  <div class="sidebar-section">
+    <h3>MARCA D'ÁGUA</h3>
+    <div class="control-row"><label>Ativar</label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="ctrl-wm-active" checked onchange="updateWatermark()" style="width:20px;height:20px;accent-color:var(--gold)">
+        <span class="val" id="val-wm-active" style="font-size:11px">ATIVA</span>
+      </label>
+    </div>
+    <div class="control-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+      <label>Texto</label>
+      <input type="text" id="ctrl-wm-text" value="@SUPERLIGAMM" oninput="updateWatermark()" style="width:100%;background:var(--bg-0);border:1px solid var(--line);color:var(--ink);padding:8px;font-family:var(--mono);font-size:13px">
+    </div>
+    <div class="control-row"><label>Opacidade</label><input type="range" min="5" max="80" value="30" id="ctrl-wm-opacity" oninput="updateWatermark()"><span class="val" id="val-wm-opacity">30</span></div>
+    <div class="control-row"><label>Tamanho</label><input type="range" min="8" max="36" value="14" id="ctrl-wm-size" oninput="updateWatermark()"><span class="val" id="val-wm-size">14</span></div>
   </div>
   <div class="button-group"><button class="btn btn-sm btn-outline" style="width:100%" onclick="resetarControles()">RESETAR DESIGN</button></div>
 </div>
@@ -914,7 +929,7 @@ body.editor-mode .sidebar-toggle{display:block}
           <img id="logo-preview" class="logo-topo">
           <img id="titulo-preview" class="titulo-imagem">
           <img id="parceiros-preview" class="footer-parceiros">
-          <div class="watermark">@SUPERLIGAMM</div>
+          <div class="watermark" id="wm-el">@SUPERLIGAMM</div>
           <div class="table-container" id="table-container"><div class="t-col" id="col-left"></div></div>
         </div>
       </div></div></div>
@@ -937,10 +952,13 @@ body.editor-mode .sidebar-toggle{display:block}
   </select>
 
   <div class="table-pass-modal-area">
-    <label>🔒 SENHA ESPECÍFICA DESTA PLANILHA (opcional)</label>
-    <input type="password" id="new-table-pass" placeholder="Deixe em branco para sem senha extra" style="margin-bottom:6px">
-    <input type="password" id="new-table-pass2" placeholder="Confirme a senha">
-    <div class="table-pass-hint">A senha padrão global (020698) já protege o acesso. Esta senha adicional será exigida para abrir e editar esta planilha específica.</div>
+    <label>🔑 SENHA DE CRIAÇÃO (obrigatória)</label>
+    <input type="password" id="create-auth-pass" placeholder="Digite a senha de criação" style="margin-bottom:6px">
+    <div class="table-pass-hint" style="margin-bottom:18px">Necessária para criar novas planilhas.</div>
+    <label>🔒 SENHA DESTA PLANILHA (opcional)</label>
+    <input type="password" id="new-table-pass" placeholder="Deixe em branco para sem senha" style="margin-bottom:6px">
+    <input type="password" id="new-table-pass2" placeholder="Confirme a senha da planilha">
+    <div class="table-pass-hint">Esta senha será exigida para abrir e editar esta planilha.</div>
   </div>
 
   <div class="button-group">
@@ -966,7 +984,7 @@ body.editor-mode .sidebar-toggle{display:block}
 <div class="modal-overlay" id="change-pass-modal"><div class="modal" style="max-width:420px">
   <h3>ALTERAR SENHA</h3>
   <p style="color:var(--ink-dim);font-family:var(--mono);font-size:11px;margin-bottom:20px">Deixe em branco para remover a senha desta planilha.</p>
-  <label>Senha Atual da Planilha (ou senha global)</label>
+  <label>Senha Atual da Planilha</label>
   <input type="password" id="chg-current-pass" placeholder="Senha atual">
   <label>Nova Senha</label>
   <input type="password" id="chg-new-pass" placeholder="Nova senha (em branco = sem senha)">
@@ -1152,21 +1170,9 @@ const countries=[{code:'af',name:'Afeganistão'},{code:'za',name:'África do Sul
    SENHA GLOBAL
    ============================================================ */
 function checkGlobalPass(){
-  const inp=document.getElementById('global-pass-input');
-  const err=document.getElementById('global-lock-error');
-  if(inp.value===GLOBAL_PASS){
-    document.getElementById('global-lock-screen').classList.add('hidden');
-    document.getElementById('home-view').style.display='block';
-    inp.value='';
-  }else{
-    err.textContent='Senha incorreta. Tente novamente.';
-    inp.classList.add('shake');
-    inp.value='';
-    setTimeout(()=>inp.classList.remove('shake'),500);
-    setTimeout(()=>err.textContent='',2500);
-  }
+  // Tela global removida — senha global agora é usada apenas na criação de tabelas
 }
-document.getElementById('global-pass-input').addEventListener('keydown',e=>{if(e.key==='Enter')checkGlobalPass()});
+// listener removido junto com a tela global
 
 /* ============================================================
    SENHA POR PLANILHA
@@ -1193,7 +1199,7 @@ function checkTablePass(){
   const err=document.getElementById('table-pass-error');
   const t=tables.find(x=>x.id===pendingOpenTableId);
   if(!t)return;
-  if(val===t.data.tablePass||val===GLOBAL_PASS){
+  if(val===t.data.tablePass){
     closeModal('table-pass-modal');
     doOpenTable(pendingOpenTableId, true);
     pendingOpenTableId=null;
@@ -1280,7 +1286,7 @@ function setEditorReadonly(readonly){
 function unlockEdit(){
   const val=document.getElementById('edit-pass-input').value;
   if(!val)return;
-  if(val===state.tablePass||val===GLOBAL_PASS){
+  if(val===state.tablePass){
     state.editUnlocked=true;
     document.getElementById('edit-lock-bar').style.display='none';
     document.getElementById('edit-pass-input').value='';
@@ -1308,7 +1314,7 @@ function confirmChangePass(){
   const n2=document.getElementById('chg-new-pass2').value;
 
   // Verifica senha atual
-  const validCurrent=(!state.tablePass)||(cur===state.tablePass)||(cur===GLOBAL_PASS);
+  const validCurrent=(!state.tablePass)||(cur===state.tablePass);
   if(!validCurrent){showStatus('chg-pass-status','Senha atual incorreta.','error');return}
   if(n1&&n1!==n2){showStatus('chg-pass-status','As novas senhas não coincidem.','error');return}
 
@@ -1430,6 +1436,7 @@ const escapeHtml=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">"
 function createNewTable(){
   document.getElementById('new-table-name').value='Tabela '+(tables.length+1);
   document.getElementById('new-table-type').value='misto';
+  document.getElementById('create-auth-pass').value='';
   document.getElementById('new-table-pass').value='';
   document.getElementById('new-table-pass2').value='';
   document.getElementById('new-table-status').className='status-msg';
@@ -1440,6 +1447,8 @@ function createNewTable(){
 async function confirmNewTable(){
   const name=document.getElementById('new-table-name').value.trim();
   if(!name)return showStatus('new-table-status','Digite um nome!','error');
+  const authPass=document.getElementById('create-auth-pass').value;
+  if(authPass!==GLOBAL_PASS){showStatus('new-table-status','Senha de criação incorreta!','error');document.getElementById('create-auth-pass').value='';return}
   const ttype=document.getElementById('new-table-type').value;
   const p1=document.getElementById('new-table-pass').value;
   const p2=document.getElementById('new-table-pass2').value;
@@ -1635,10 +1644,19 @@ function applyControls(){
 function loadControls(){
   if(!state.controls||!Object.keys(state.controls).length){
     document.querySelectorAll('.sidebar input[type="checkbox"]').forEach(el=>{if(['show-group','show-matches','show-booyah','show-kills','show-pts','show-flag','show-top3'].includes(el.id.replace('ctrl-','')))el.checked=true;else el.checked=false});
-    applyControls();return;
+    applyControls();updateWatermark();return;
   }
   Object.entries(state.controls).forEach(([id,val])=>{const el=document.getElementById('ctrl-'+id);if(!el)return;if(el.type==='checkbox')el.checked=val;else{el.value=val;const v=document.getElementById('val-'+id);if(v)v.textContent=val}});
-  applyControls();
+  // Restaurar marca d'água
+  const wmActive=state.controls['wm-active'];
+  const wmText=state.controls['wm-text'];
+  const wmOpacity=state.controls['wm-opacity'];
+  const wmSize=state.controls['wm-size'];
+  if(wmActive!==undefined){const el=document.getElementById('ctrl-wm-active');if(el)el.checked=wmActive}
+  if(wmText!==undefined){const el=document.getElementById('ctrl-wm-text');if(el)el.value=wmText}
+  if(wmOpacity!==undefined){const el=document.getElementById('ctrl-wm-opacity');if(el){el.value=wmOpacity;const v=document.getElementById('val-wm-opacity');if(v)v.textContent=wmOpacity}}
+  if(wmSize!==undefined){const el=document.getElementById('ctrl-wm-size');if(el){el.value=wmSize;const v=document.getElementById('val-wm-size');if(v)v.textContent=wmSize}}
+  applyControls();updateWatermark();
 }
 
 function resetarControles(){
@@ -1648,6 +1666,27 @@ function resetarControles(){
   ['show-group','show-matches','show-booyah','show-kills','show-pts','show-flag','show-top3'].forEach(id=>{const el=document.getElementById('ctrl-'+id);if(el)el.checked=true});
   const sb=document.getElementById('ctrl-same-bar');if(sb)sb.checked=false;
   state.controls={};updateControl();
+}
+
+function updateWatermark(){
+  const wm=document.getElementById('wm-el');if(!wm)return;
+  const active=document.getElementById('ctrl-wm-active').checked;
+  const text=document.getElementById('ctrl-wm-text').value||'';
+  const opacity=parseInt(document.getElementById('ctrl-wm-opacity').value)||30;
+  const size=parseInt(document.getElementById('ctrl-wm-size').value)||14;
+  document.getElementById('val-wm-opacity').textContent=opacity;
+  document.getElementById('val-wm-size').textContent=size;
+  document.getElementById('val-wm-active').textContent=active?'ATIVA':'OCULTA';
+  wm.style.display=active?'block':'none';
+  wm.textContent=text;
+  wm.style.opacity=opacity/100;
+  wm.style.fontSize=size+'px';
+  // Salva no state.controls para persistir
+  state.controls['wm-active']=active;
+  state.controls['wm-text']=text;
+  state.controls['wm-opacity']=opacity;
+  state.controls['wm-size']=size;
+  scheduleSave();
 }
 
 /* ============================================================
