@@ -1237,8 +1237,23 @@ function doOpenTable(id, editUnlocked){
   state.tablePass=t.data.tablePass||null;
   state.editUnlocked=editUnlocked||!state.tablePass;
 
-  // Modo Sala Normal: garantir que state.teams sempre reflita os grupos cadastrados
-  if(state.tableType==='sala') snSyncTeams();
+  // Modo Sala Normal: recuperação de dados legados
+  // Se snGrupos está vazio mas state.teams tem dados → reconstruir grupos a partir dos times
+  if(state.tableType==='sala'){
+    const totalGrupo=['A','B','C','D'].reduce((n,g)=>n+(state.snGrupos[g]||[]).length,0);
+    if(totalGrupo===0 && Object.keys(state.teams).length>0){
+      // Reconstruir snGrupos a partir de state.teams (campo .group de cada time)
+      state.snGrupos={A:[],B:[],C:[],D:[]};
+      Object.values(state.teams).forEach(tm=>{
+        const g=(tm.group||'A').toUpperCase();
+        const validG=['A','B','C','D'].includes(g)?g:'A';
+        if(!state.snGrupos[validG])state.snGrupos[validG]=[];
+        state.snGrupos[validG].push({name:tm.name,pts:tm.pts||0,booyah:tm.booyah||0,kills:tm.kills||0,matches:tm.matches||0,country:tm.country||'br'});
+      });
+    }
+    // Sempre sincronizar teams a partir dos grupos
+    snSyncTeams();
+  }
 
   document.body.classList.add('editor-mode');
   document.getElementById('home-view').style.display='none';
@@ -1751,8 +1766,11 @@ function switchTab(id,btn){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   const el=document.getElementById(id);if(el)el.classList.add('active');
   if(btn)btn.classList.add('active');
-  // Modo Sala Normal: sincronizar times ao trocar de aba
-  if(state.tableType==='sala'){snSyncTeams();renderTeamsTable();gerarTabela();}
+  // Modo Sala Normal: sempre sincronizar ao trocar aba
+  if(state&&state.tableType==='sala'){
+    snSyncTeams();
+    renderTeamsTable();
+  }
 }
 function switchSubTab(id,btn){document.querySelectorAll('.sub-tab-content').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.sub-tab-btn').forEach(b=>b.classList.remove('active'));const el=document.getElementById(id);if(el)el.classList.add('active');if(btn)btn.classList.add('active')}
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebar-toggle').classList.toggle('shifted');document.getElementById('main-area').classList.toggle('sidebar-open')}
@@ -2122,6 +2140,8 @@ function toggleForcedTop1(teamKey){state.forcedTop1=(state.forcedTop1===teamKey)
 function clearForcedTop1(){state.forcedTop1=null;scheduleSave();renderTeamsTable();gerarTabela()}
 
 function renderTeamsTable(){
+  // Modo Sala Normal: garantir sync antes de renderizar
+  if(state&&state.tableType==='sala') snSyncTeams();
   const q=(document.getElementById('team-search')?.value||'').toUpperCase();
   const sorted=sortTeamsByRules(state.teams);
   const sortedKeys=sorted.map(t=>t.name.toUpperCase()).filter(k=>!q||k.includes(q));
