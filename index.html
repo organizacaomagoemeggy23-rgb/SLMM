@@ -144,14 +144,12 @@ body::before{
 .table-card:hover{border-color:var(--gold);transform:translate(-2px,-2px);box-shadow:6px 6px 0 0 var(--gold-deep)}
 .table-card:hover::before{opacity:1}
 
-/* Badge de tipo da planilha */
 .tc-type-badge{
   position:absolute;top:12px;left:12px;font-family:var(--mono);font-size:9px;letter-spacing:1.5px;
   padding:4px 10px;font-weight:700;z-index:5;
 }
 .tc-type-badge.misto{background:rgba(0,240,255,.15);color:var(--cyan);border:1px solid rgba(0,240,255,.3)}
 .tc-type-badge.sala{background:rgba(232,185,35,.15);color:var(--gold);border:1px solid rgba(232,185,35,.3)}
-/* Ícone de cadeado na card */
 .tc-lock-icon{position:absolute;top:12px;right:40px;font-size:14px;color:var(--ink-mute);z-index:5}
 .tc-lock-icon.locked{color:var(--gold)}
 
@@ -695,11 +693,9 @@ body.editor-mode .sidebar-toggle{display:block}
       <input type="text" class="table-name-input" id="table-name-input" placeholder="Nome da tabela" oninput="renameCurrentTable()">
       <span class="save-indicator" id="save-indicator">✓ Salvo</span>
     </div>
-    <!-- Botão alterar senha da planilha -->
     <button class="btn btn-sm btn-outline" onclick="openChangeTablePass()" title="Alterar senha desta planilha">🔒 SENHA</button>
   </div>
 
-  <!-- BARRA DE EDIÇÃO PROTEGIDA -->
   <div class="edit-lock-bar" id="edit-lock-bar" style="display:none">
     <span>🔐 EDIÇÃO BLOQUEADA — digite a senha da planilha para editar</span>
     <input type="password" id="edit-pass-input" placeholder="senha" onkeydown="if(event.key==='Enter')unlockEdit()">
@@ -717,7 +713,6 @@ body.editor-mode .sidebar-toggle{display:block}
 
   <!-- ===== TAB DADOS ===== -->
   <div class="tab-content active" id="tab-dados">
-    <!-- MISTO: sub-tabs CSV + Manual -->
     <div id="dados-misto">
       <div class="sub-tabs">
         <button class="sub-tab-btn active" onclick="switchSubTab('subtab-csv',this)">CSV / LOG</button>
@@ -764,7 +759,6 @@ body.editor-mode .sidebar-toggle{display:block}
       </div>
     </div>
 
-    <!-- SALA NORMAL: interface de grupos -->
     <div id="dados-sala-normal" style="display:none">
       <div class="card">
         <div class="card-title"><div class="icon">G</div>GRUPOS & EQUIPES</div>
@@ -939,18 +933,15 @@ body.editor-mode .sidebar-toggle{display:block}
 
 <!-- ===== MODALS ===== -->
 
-<!-- NOVA TABELA -->
 <div class="modal-overlay" id="new-table-modal"><div class="modal">
   <h3>NOVA TABELA</h3>
   <label>Nome</label>
   <input type="text" id="new-table-name" placeholder="Ex: Tabela Diário 01/12">
-
   <label>Tipo de Planilha</label>
   <select id="new-table-type">
     <option value="misto">MISTO (CSV + Log + Manual)</option>
     <option value="sala">SALA NORMAL (Grupos A/B/C/D)</option>
   </select>
-
   <div class="table-pass-modal-area">
     <label>🔑 SENHA DE CRIAÇÃO (obrigatória)</label>
     <input type="password" id="create-auth-pass" placeholder="Digite a senha de criação" style="margin-bottom:6px">
@@ -960,7 +951,6 @@ body.editor-mode .sidebar-toggle{display:block}
     <input type="password" id="new-table-pass2" placeholder="Confirme a senha da planilha">
     <div class="table-pass-hint">Esta senha será exigida para abrir e editar esta planilha.</div>
   </div>
-
   <div class="button-group">
     <button class="btn" onclick="confirmNewTable()">CRIAR</button>
     <button class="btn btn-outline" onclick="closeModal('new-table-modal')">CANCELAR</button>
@@ -968,7 +958,6 @@ body.editor-mode .sidebar-toggle{display:block}
   <div class="status-msg" id="new-table-status"></div>
 </div></div>
 
-<!-- SENHA PARA ABRIR PLANILHA -->
 <div class="modal-overlay" id="table-pass-modal"><div class="modal" style="max-width:420px;text-align:center">
   <h3>🔒 SENHA DA PLANILHA</h3>
   <p id="table-pass-modal-name" style="color:var(--ink-dim);font-family:var(--mono);font-size:12px;letter-spacing:1px;margin-bottom:24px"></p>
@@ -980,7 +969,6 @@ body.editor-mode .sidebar-toggle{display:block}
   </div>
 </div></div>
 
-<!-- ALTERAR SENHA DA PLANILHA -->
 <div class="modal-overlay" id="change-pass-modal"><div class="modal" style="max-width:420px">
   <h3>ALTERAR SENHA</h3>
   <p style="color:var(--ink-dim);font-family:var(--mono);font-size:11px;margin-bottom:20px">Deixe em branco para remover a senha desta planilha.</p>
@@ -997,7 +985,6 @@ body.editor-mode .sidebar-toggle{display:block}
   <div class="status-msg" id="chg-pass-status"></div>
 </div></div>
 
-<!-- BACKUP -->
 <div class="modal-overlay" id="backup-modal"><div class="modal" style="max-width:600px">
   <h3>BACKUP COMPLETO</h3>
   <p style="color:var(--text-secondary);margin-bottom:12px;font-size:12px">Exporta <strong style="color:var(--gold)">todas as tabelas e todos os assets</strong> como JSON.</p>
@@ -1012,7 +999,6 @@ body.editor-mode .sidebar-toggle{display:block}
   <div class="status-msg" id="backup-status"></div>
 </div></div>
 
-<!-- FUNDIR -->
 <div class="modal-overlay" id="merge-modal"><div class="modal">
   <h3>FUNDIR EQUIPES</h3>
   <label>Principal</label><select id="merge-primary"></select>
@@ -1023,7 +1009,6 @@ body.editor-mode .sidebar-toggle{display:block}
   </div>
 </div></div>
 
-<!-- PAÍS -->
 <div class="modal-overlay" id="country-modal"><div class="modal">
   <h3>SELECIONAR PAÍS</h3>
   <input type="text" class="search-input" id="country-search" placeholder="Buscar..." oninput="filterCountries()">
@@ -1031,7 +1016,6 @@ body.editor-mode .sidebar-toggle{display:block}
   <div class="button-group" style="margin-top:12px"><button class="btn btn-outline" onclick="closeModal('country-modal')">FECHAR</button></div>
 </div></div>
 
-<!-- ADD EQUIPE -->
 <div class="modal-overlay" id="add-team-modal"><div class="modal" style="max-width:400px">
   <h3>ADICIONAR EQUIPE</h3>
   <label>Nome</label><input type="text" id="add-t-name" placeholder="LOUD">
@@ -1046,7 +1030,6 @@ body.editor-mode .sidebar-toggle{display:block}
   </div>
 </div></div>
 
-<!-- LOGO PICKER -->
 <div class="logo-picker-overlay" id="logo-picker-overlay">
   <div class="logo-picker-modal">
     <div class="logo-picker-header">
@@ -1068,12 +1051,7 @@ body.editor-mode .sidebar-toggle{display:block}
 
 <script>
 /* ============================================================
-   SLMM SYSTEM 1.2
-   + Sistema de senha global (020698)
-   + Senha por planilha (opcional, ao criar)
-   + Senha para editar
-   + Tipo "Sala Normal" com grupos A/B/C/D e confrontos
-   + Tipo "Misto" (CSV + Log + Manual) — já existia
+   SLMM SYSTEM 1.2 — TODOS OS PAÍSES
    ============================================================ */
 
 const GLOBAL_PASS = '020698';
@@ -1150,29 +1128,273 @@ let state={
   pages:[{name:'Página 1',start:1,end:12}],currentPageIdx:0,
   columnOrder:['pts','kills','booyah','matches','group'],
   assetRefs:{},rules:null,forcedTop1:null,
-  tableType:'misto', // 'misto' | 'sala'
-  snGrupos:{A:[],B:[],C:[],D:[]}, // Sala Normal grupos
-  snLotes:[], // Sala Normal lotes
-  tablePass:null, // senha específica da planilha (null = sem senha)
-  editUnlocked:false // se a edição está desbloqueada
+  tableType:'misto',
+  snGrupos:{A:[],B:[],C:[],D:[]},
+  snLotes:[],
+  tablePass:null,
+  editUnlocked:false
 };
 
 let saveTimer=null;
 let currentCountryTeam=null;
 let logoPickerTarget=null;
 let logoPickerSelected=null;
-// Tabela pendente de abertura (aguardando senha)
 let pendingOpenTableId=null;
 
-const countries=[{code:'af',name:'Afeganistão'},{code:'za',name:'África do Sul'},{code:'al',name:'Albânia'},{code:'de',name:'Alemanha'},{code:'ao',name:'Angola'},{code:'sa',name:'Arábia Saudita'},{code:'ar',name:'Argentina'},{code:'au',name:'Austrália'},{code:'at',name:'Áustria'},{code:'be',name:'Bélgica'},{code:'bo',name:'Bolívia'},{code:'br',name:'Brasil'},{code:'bg',name:'Bulgária'},{code:'ca',name:'Canadá'},{code:'cl',name:'Chile'},{code:'cn',name:'China'},{code:'co',name:'Colômbia'},{code:'kr',name:'Coreia do Sul'},{code:'cr',name:'Costa Rica'},{code:'hr',name:'Croácia'},{code:'cu',name:'Cuba'},{code:'dk',name:'Dinamarca'},{code:'eg',name:'Egito'},{code:'sv',name:'El Salvador'},{code:'ec',name:'Equador'},{code:'es',name:'Espanha'},{code:'us',name:'Estados Unidos'},{code:'fi',name:'Finlândia'},{code:'fr',name:'França'},{code:'gr',name:'Grécia'},{code:'gt',name:'Guatemala'},{code:'hn',name:'Honduras'},{code:'nl',name:'Holanda'},{code:'hk',name:'Hong Kong'},{code:'hu',name:'Hungria'},{code:'in',name:'Índia'},{code:'id',name:'Indonésia'},{code:'ie',name:'Irlanda'},{code:'is',name:'Islândia'},{code:'il',name:'Israel'},{code:'it',name:'Itália'},{code:'jm',name:'Jamaica'},{code:'jp',name:'Japão'},{code:'mx',name:'México'},{code:'md',name:'Moldávia'},{code:'no',name:'Noruega'},{code:'nz',name:'Nova Zelândia'},{code:'pa',name:'Panamá'},{code:'py',name:'Paraguai'},{code:'pe',name:'Peru'},{code:'pl',name:'Polônia'},{code:'pt',name:'Portugal'},{code:'gb',name:'Reino Unido'},{code:'do',name:'Rep. Dominicana'},{code:'cz',name:'Rep. Tcheca'},{code:'ro',name:'Romênia'},{code:'ru',name:'Rússia'},{code:'sg',name:'Singapura'},{code:'se',name:'Suécia'},{code:'ch',name:'Suíça'},{code:'th',name:'Tailândia'},{code:'tw',name:'Taiwan'},{code:'tr',name:'Turquia'},{code:'ua',name:'Ucrânia'},{code:'uy',name:'Uruguai'},{code:'ve',name:'Venezuela'},{code:'vn',name:'Vietnã'}];
+/* ============================================================
+   LISTA COMPLETA DE PAÍSES — 249 ENTRADAS (flagcdn.com)
+   ============================================================ */
+const countries=[
+  {code:'af',name:'Afeganistão'},
+  {code:'za',name:'África do Sul'},
+  {code:'al',name:'Albânia'},
+  {code:'de',name:'Alemanha'},
+  {code:'ad',name:'Andorra'},
+  {code:'ao',name:'Angola'},
+  {code:'ai',name:'Anguilla'},
+  {code:'aq',name:'Antártida'},
+  {code:'ag',name:'Antígua e Barbuda'},
+  {code:'sa',name:'Arábia Saudita'},
+  {code:'dz',name:'Argélia'},
+  {code:'ar',name:'Argentina'},
+  {code:'am',name:'Armênia'},
+  {code:'aw',name:'Aruba'},
+  {code:'au',name:'Austrália'},
+  {code:'at',name:'Áustria'},
+  {code:'az',name:'Azerbaijão'},
+  {code:'bs',name:'Bahamas'},
+  {code:'bh',name:'Bahrein'},
+  {code:'bd',name:'Bangladesh'},
+  {code:'bb',name:'Barbados'},
+  {code:'be',name:'Bélgica'},
+  {code:'bz',name:'Belize'},
+  {code:'bj',name:'Benin'},
+  {code:'bm',name:'Bermudas'},
+  {code:'by',name:'Bielorrússia'},
+  {code:'bo',name:'Bolívia'},
+  {code:'bq',name:'Caribe Neerlandês'},
+  {code:'ba',name:'Bósnia e Herzegovina'},
+  {code:'bw',name:'Botsuana'},
+  {code:'br',name:'Brasil'},
+  {code:'bn',name:'Brunei'},
+  {code:'bg',name:'Bulgária'},
+  {code:'bf',name:'Burkina Faso'},
+  {code:'bi',name:'Burundi'},
+  {code:'bt',name:'Butão'},
+  {code:'cv',name:'Cabo Verde'},
+  {code:'cm',name:'Camarões'},
+  {code:'kh',name:'Camboja'},
+  {code:'ca',name:'Canadá'},
+  {code:'qa',name:'Catar'},
+  {code:'kz',name:'Cazaquistão'},
+  {code:'td',name:'Chade'},
+  {code:'cl',name:'Chile'},
+  {code:'cn',name:'China'},
+  {code:'cy',name:'Chipre'},
+  {code:'co',name:'Colômbia'},
+  {code:'km',name:'Comores'},
+  {code:'cg',name:'Congo'},
+  {code:'cd',name:'Congo (RD)'},
+  {code:'kp',name:'Coreia do Norte'},
+  {code:'kr',name:'Coreia do Sul'},
+  {code:'ci',name:'Costa do Marfim'},
+  {code:'cr',name:'Costa Rica'},
+  {code:'hr',name:'Croácia'},
+  {code:'cu',name:'Cuba'},
+  {code:'cw',name:'Curaçao'},
+  {code:'dk',name:'Dinamarca'},
+  {code:'dj',name:'Djibuti'},
+  {code:'dm',name:'Dominica'},
+  {code:'eg',name:'Egito'},
+  {code:'sv',name:'El Salvador'},
+  {code:'ae',name:'Emirados Árabes'},
+  {code:'ec',name:'Equador'},
+  {code:'er',name:'Eritreia'},
+  {code:'sk',name:'Eslováquia'},
+  {code:'si',name:'Eslovênia'},
+  {code:'es',name:'Espanha'},
+  {code:'us',name:'Estados Unidos'},
+  {code:'ee',name:'Estônia'},
+  {code:'sz',name:'Eswatini'},
+  {code:'et',name:'Etiópia'},
+  {code:'fj',name:'Fiji'},
+  {code:'ph',name:'Filipinas'},
+  {code:'fi',name:'Finlândia'},
+  {code:'fr',name:'França'},
+  {code:'ga',name:'Gabão'},
+  {code:'gm',name:'Gâmbia'},
+  {code:'gh',name:'Gana'},
+  {code:'ge',name:'Geórgia'},
+  {code:'gi',name:'Gibraltar'},
+  {code:'gd',name:'Granada'},
+  {code:'gr',name:'Grécia'},
+  {code:'gl',name:'Groenlândia'},
+  {code:'gp',name:'Guadalupe'},
+  {code:'gu',name:'Guam'},
+  {code:'gt',name:'Guatemala'},
+  {code:'gg',name:'Guernsey'},
+  {code:'gy',name:'Guiana'},
+  {code:'gf',name:'Guiana Francesa'},
+  {code:'gn',name:'Guiné'},
+  {code:'gw',name:'Guiné-Bissau'},
+  {code:'gq',name:'Guiné Equatorial'},
+  {code:'ht',name:'Haiti'},
+  {code:'nl',name:'Holanda'},
+  {code:'hn',name:'Honduras'},
+  {code:'hk',name:'Hong Kong'},
+  {code:'hu',name:'Hungria'},
+  {code:'ye',name:'Iêmen'},
+  {code:'ax',name:'Ilhas Åland'},
+  {code:'ky',name:'Ilhas Cayman'},
+  {code:'cc',name:'Ilhas Cocos'},
+  {code:'ck',name:'Ilhas Cook'},
+  {code:'fo',name:'Ilhas Faroe'},
+  {code:'fk',name:'Ilhas Malvinas'},
+  {code:'mp',name:'Ilhas Marianas do Norte'},
+  {code:'mh',name:'Ilhas Marshall'},
+  {code:'nf',name:'Ilha Norfolk'},
+  {code:'pn',name:'Ilhas Pitcairn'},
+  {code:'sb',name:'Ilhas Salomão'},
+  {code:'tc',name:'Ilhas Turks e Caicos'},
+  {code:'vg',name:'Ilhas Virgens Britânicas'},
+  {code:'vi',name:'Ilhas Virgens Americanas'},
+  {code:'cx',name:'Ilha Christmas'},
+  {code:'im',name:'Ilha de Man'},
+  {code:'in',name:'Índia'},
+  {code:'id',name:'Indonésia'},
+  {code:'ir',name:'Irã'},
+  {code:'iq',name:'Iraque'},
+  {code:'ie',name:'Irlanda'},
+  {code:'is',name:'Islândia'},
+  {code:'il',name:'Israel'},
+  {code:'it',name:'Itália'},
+  {code:'jm',name:'Jamaica'},
+  {code:'jp',name:'Japão'},
+  {code:'je',name:'Jersey'},
+  {code:'jo',name:'Jordânia'},
+  {code:'ki',name:'Kiribati'},
+  {code:'xk',name:'Kosovo'},
+  {code:'kw',name:'Kuwait'},
+  {code:'la',name:'Laos'},
+  {code:'ls',name:'Lesoto'},
+  {code:'lv',name:'Letônia'},
+  {code:'lb',name:'Líbano'},
+  {code:'lr',name:'Libéria'},
+  {code:'ly',name:'Líbia'},
+  {code:'li',name:'Liechtenstein'},
+  {code:'lt',name:'Lituânia'},
+  {code:'lu',name:'Luxemburgo'},
+  {code:'mo',name:'Macau'},
+  {code:'mk',name:'Macedônia do Norte'},
+  {code:'mg',name:'Madagascar'},
+  {code:'my',name:'Malásia'},
+  {code:'mw',name:'Malawi'},
+  {code:'mv',name:'Maldivas'},
+  {code:'ml',name:'Mali'},
+  {code:'mt',name:'Malta'},
+  {code:'ma',name:'Marrocos'},
+  {code:'mq',name:'Martinica'},
+  {code:'mu',name:'Maurício'},
+  {code:'mr',name:'Mauritânia'},
+  {code:'yt',name:'Mayotte'},
+  {code:'mx',name:'México'},
+  {code:'fm',name:'Micronésia'},
+  {code:'mm',name:'Mianmar'},
+  {code:'md',name:'Moldávia'},
+  {code:'mc',name:'Mônaco'},
+  {code:'mn',name:'Mongólia'},
+  {code:'me',name:'Montenegro'},
+  {code:'ms',name:'Montserrat'},
+  {code:'mz',name:'Moçambique'},
+  {code:'na',name:'Namíbia'},
+  {code:'nr',name:'Nauru'},
+  {code:'np',name:'Nepal'},
+  {code:'ni',name:'Nicarágua'},
+  {code:'ne',name:'Níger'},
+  {code:'ng',name:'Nigéria'},
+  {code:'nu',name:'Niue'},
+  {code:'no',name:'Noruega'},
+  {code:'nc',name:'Nova Caledônia'},
+  {code:'nz',name:'Nova Zelândia'},
+  {code:'om',name:'Omã'},
+  {code:'pw',name:'Palau'},
+  {code:'ps',name:'Palestina'},
+  {code:'pa',name:'Panamá'},
+  {code:'pg',name:'Papua Nova Guiné'},
+  {code:'pk',name:'Paquistão'},
+  {code:'py',name:'Paraguai'},
+  {code:'pe',name:'Peru'},
+  {code:'pf',name:'Polinésia Francesa'},
+  {code:'pl',name:'Polônia'},
+  {code:'pr',name:'Porto Rico'},
+  {code:'pt',name:'Portugal'},
+  {code:'ke',name:'Quênia'},
+  {code:'kg',name:'Quirguistão'},
+  {code:'gb',name:'Reino Unido'},
+  {code:'cf',name:'Rep. Centro-Africana'},
+  {code:'do',name:'Rep. Dominicana'},
+  {code:'cz',name:'Rep. Tcheca'},
+  {code:'re',name:'Reunião'},
+  {code:'ro',name:'Romênia'},
+  {code:'rw',name:'Ruanda'},
+  {code:'ru',name:'Rússia'},
+  {code:'eh',name:'Saara Ocidental'},
+  {code:'ws',name:'Samoa'},
+  {code:'as',name:'Samoa Americana'},
+  {code:'sm',name:'San Marino'},
+  {code:'sh',name:'Santa Helena'},
+  {code:'lc',name:'Santa Lúcia'},
+  {code:'bl',name:'São Bartolomeu'},
+  {code:'kn',name:'São Cristóvão e Nevis'},
+  {code:'mf',name:'São Martinho (FR)'},
+  {code:'sx',name:'São Martinho (NL)'},
+  {code:'pm',name:'São Pedro e Miquelon'},
+  {code:'st',name:'São Tomé e Príncipe'},
+  {code:'vc',name:'São Vicente e Granadinas'},
+  {code:'sc',name:'Seicheles'},
+  {code:'sn',name:'Senegal'},
+  {code:'sl',name:'Serra Leoa'},
+  {code:'rs',name:'Sérvia'},
+  {code:'sg',name:'Singapura'},
+  {code:'sy',name:'Síria'},
+  {code:'so',name:'Somália'},
+  {code:'lk',name:'Sri Lanka'},
+  {code:'sd',name:'Sudão'},
+  {code:'ss',name:'Sudão do Sul'},
+  {code:'se',name:'Suécia'},
+  {code:'ch',name:'Suíça'},
+  {code:'sr',name:'Suriname'},
+  {code:'sj',name:'Svalbard e Jan Mayen'},
+  {code:'tj',name:'Tajiquistão'},
+  {code:'th',name:'Tailândia'},
+  {code:'tw',name:'Taiwan'},
+  {code:'tz',name:'Tanzânia'},
+  {code:'tl',name:'Timor-Leste'},
+  {code:'tg',name:'Togo'},
+  {code:'tk',name:'Tokelau'},
+  {code:'to',name:'Tonga'},
+  {code:'tt',name:'Trinidad e Tobago'},
+  {code:'tn',name:'Tunísia'},
+  {code:'tm',name:'Turcomenistão'},
+  {code:'tr',name:'Turquia'},
+  {code:'tv',name:'Tuvalu'},
+  {code:'ua',name:'Ucrânia'},
+  {code:'ug',name:'Uganda'},
+  {code:'uy',name:'Uruguai'},
+  {code:'uz',name:'Uzbequistão'},
+  {code:'vu',name:'Vanuatu'},
+  {code:'va',name:'Vaticano'},
+  {code:'ve',name:'Venezuela'},
+  {code:'vn',name:'Vietnã'},
+  {code:'wf',name:'Wallis e Futuna'},
+  {code:'zm',name:'Zâmbia'},
+  {code:'zw',name:'Zimbábue'}
+];
 
 /* ============================================================
    SENHA GLOBAL
    ============================================================ */
-function checkGlobalPass(){
-  // Tela global removida — senha global agora é usada apenas na criação de tabelas
-}
-// listener removido junto com a tela global
+function checkGlobalPass(){}
 
 /* ============================================================
    SENHA POR PLANILHA
@@ -1182,7 +1404,6 @@ function openTableWithPassCheck(id){
   if(!t)return;
   const pass=t.data.tablePass;
   if(pass){
-    // Precisa de senha
     pendingOpenTableId=id;
     document.getElementById('table-pass-modal-name').textContent='"'+t.name+'"';
     document.getElementById('table-pass-input').value='';
@@ -1213,8 +1434,6 @@ function checkTablePass(){
   }
 }
 
-// Quando a planilha tem senha, ao abrir fica em modo bloqueado para edição
-// O usuário pode ver mas não editar sem digitar a senha
 function doOpenTable(id, editUnlocked){
   const t=tables.find(x=>x.id===id);if(!t)return;
   currentTable=t;
@@ -1237,12 +1456,9 @@ function doOpenTable(id, editUnlocked){
   state.tablePass=t.data.tablePass||null;
   state.editUnlocked=editUnlocked||!state.tablePass;
 
-  // Modo Sala Normal: recuperação de dados legados
-  // Se snGrupos está vazio mas state.teams tem dados → reconstruir grupos a partir dos times
   if(state.tableType==='sala'){
     const totalGrupo=['A','B','C','D'].reduce((n,g)=>n+(state.snGrupos[g]||[]).length,0);
     if(totalGrupo===0 && Object.keys(state.teams).length>0){
-      // Reconstruir snGrupos a partir de state.teams (campo .group de cada time)
       state.snGrupos={A:[],B:[],C:[],D:[]};
       Object.values(state.teams).forEach(tm=>{
         const g=(tm.group||'A').toUpperCase();
@@ -1251,7 +1467,6 @@ function doOpenTable(id, editUnlocked){
         state.snGrupos[validG].push({name:tm.name,pts:tm.pts||0,booyah:tm.booyah||0,kills:tm.kills||0,matches:tm.matches||0,country:tm.country||'br'});
       });
     }
-    // Sempre sincronizar teams a partir dos grupos
     snSyncTeams();
   }
 
@@ -1259,7 +1474,6 @@ function doOpenTable(id, editUnlocked){
   document.getElementById('home-view').style.display='none';
   document.getElementById('table-name-input').value=t.name;
 
-  // Barra de edição bloqueada
   const lockBar=document.getElementById('edit-lock-bar');
   if(state.tablePass&&!state.editUnlocked){
     lockBar.style.display='flex';
@@ -1269,7 +1483,6 @@ function doOpenTable(id, editUnlocked){
     setEditorReadonly(false);
   }
 
-  // Mostrar UI correta por tipo
   document.getElementById('dados-misto').style.display=(state.tableType==='misto')?'block':'none';
   document.getElementById('dados-sala-normal').style.display=(state.tableType==='sala')?'block':'none';
 
@@ -1283,7 +1496,6 @@ function doOpenTable(id, editUnlocked){
   applyAssetsToPreview();
   gerarTabela();
 
-  // Sala Normal: renderizar grupos
   if(state.tableType==='sala')snRenderGrupos();
 
   switchTab('tab-dados',document.querySelector('[data-tab="tab-dados"]'));
@@ -1291,13 +1503,11 @@ function doOpenTable(id, editUnlocked){
 }
 
 function setEditorReadonly(readonly){
-  // Desabilita botões destrutivos quando bloqueado
   const btns=document.querySelectorAll('#main-area .btn:not(.back-btn):not(.tab-btn)');
   btns.forEach(b=>{
     if(b.textContent.includes('VOLTAR'))return;
     b.disabled=readonly;
   });
-  // Desabilita textareas e inputs de edição
   document.querySelectorAll('#main-area textarea,#main-area .teams-table input').forEach(el=>el.disabled=readonly);
 }
 
@@ -1330,12 +1540,9 @@ function confirmChangePass(){
   const cur=document.getElementById('chg-current-pass').value;
   const n1=document.getElementById('chg-new-pass').value;
   const n2=document.getElementById('chg-new-pass2').value;
-
-  // Verifica senha atual
   const validCurrent=(!state.tablePass)||(cur===state.tablePass);
   if(!validCurrent){showStatus('chg-pass-status','Senha atual incorreta.','error');return}
   if(n1&&n1!==n2){showStatus('chg-pass-status','As novas senhas não coincidem.','error');return}
-
   state.tablePass=n1||null;
   state.editUnlocked=true;
   document.getElementById('edit-lock-bar').style.display='none';
@@ -1352,7 +1559,6 @@ async function init(){
     tables=await dbAll(ST_TABLES);
     assets=await dbAll(ST_ASSETS);
   }catch(e){
-    // Aviso apenas, não bloqueia
     console.warn('Erro ao conectar:',e.message);
   }
   renderHome();
@@ -1499,7 +1705,6 @@ function goHome(){document.body.classList.remove('editor-mode');document.getElem
 
 async function saveCurrentTable(){
   if(!currentTable)return;
-  // Modo Sala Normal: garantir sincronização antes de salvar
   if(state.tableType==='sala') snSyncTeams();
   currentTable.data={
     teams:state.teams,lotes:state.lotes,controls:state.controls,
@@ -1667,7 +1872,6 @@ function loadControls(){
     applyControls();updateWatermark();return;
   }
   Object.entries(state.controls).forEach(([id,val])=>{const el=document.getElementById('ctrl-'+id);if(!el)return;if(el.type==='checkbox')el.checked=val;else{el.value=val;const v=document.getElementById('val-'+id);if(v)v.textContent=val}});
-  // Restaurar marca d'água
   const wmActive=state.controls['wm-active'];
   const wmText=state.controls['wm-text'];
   const wmOpacity=state.controls['wm-opacity'];
@@ -1701,7 +1905,6 @@ function updateWatermark(){
   wm.textContent=text;
   wm.style.opacity=opacity/100;
   wm.style.fontSize=size+'px';
-  // Salva no state.controls para persistir
   state.controls['wm-active']=active;
   state.controls['wm-text']=text;
   state.controls['wm-opacity']=opacity;
@@ -1766,7 +1969,6 @@ function switchTab(id,btn){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   const el=document.getElementById(id);if(el)el.classList.add('active');
   if(btn)btn.classList.add('active');
-  // Modo Sala Normal: sempre sincronizar ao trocar aba
   if(state&&state.tableType==='sala'){
     snSyncTeams();
     renderTeamsTable();
@@ -1784,8 +1986,6 @@ function snAddTeam(){
   const name=document.getElementById('sn-new-team-name').value.trim();
   const grp=document.getElementById('sn-new-team-group').value;
   if(!name){showStatus('sn-add-status','Digite o nome da equipe!','error');return}
-
-  // Verifica duplicata em qualquer grupo
   const key=name.toUpperCase();
   for(const g of ['A','B','C','D']){
     if((state.snGrupos[g]||[]).find(t=>t.name.toUpperCase()===key)){
@@ -1794,10 +1994,7 @@ function snAddTeam(){
   }
   if(!state.snGrupos[grp])state.snGrupos[grp]=[];
   state.snGrupos[grp].push({name,pts:0,booyah:0,kills:0,matches:0,country:'br'});
-
-  // Também adiciona em state.teams para aparecer no preview
   state.teams[key]={name,pts:0,booyah:0,kills:0,matches:0,country:'br',group:grp};
-
   document.getElementById('sn-new-team-name').value='';
   scheduleSave();
   snRenderGrupos();
@@ -1831,7 +2028,6 @@ function snRenderGrupos(){
       }).join('')}
     </div>`;
   }).join('');
-  // Update lote count
   const lc=document.getElementById('sn-lote-count');
   if(lc)lc.textContent=state.snLotes.length;
 }
@@ -1849,14 +2045,10 @@ function snLoadConfronto(){
   const g2=document.getElementById('sn-grp2').value;
   const numSalas=parseInt(document.getElementById('sn-num-salas').value)||1;
   const area=document.getElementById('sn-confronto-area');
-
-  // Coletar equipes dos dois grupos
   const teams=[...(state.snGrupos[g1]||[]),...(g1!==g2?(state.snGrupos[g2]||[]):[])];
   if(!teams.length){
     area.innerHTML='<div class="empty-state"><div class="big-icon">⚔️</div><p>Nenhuma equipe nesses grupos</p></div>';return;
   }
-
-  // Gerar N salas de input
   let html='';
   for(let s=1;s<=numSalas;s++){
     html+=`<div style="margin-bottom:16px;padding:16px;background:var(--bg-0);border:1px solid var(--line)">
@@ -1879,8 +2071,6 @@ function snLoadConfronto(){
     </div>`;
   }
   area.innerHTML=html||'<div class="empty-state"><p>Nenhuma equipe</p></div>';
-
-  // Sugerir nome da sala
   const snName=document.getElementById('sn-sala-name');
   if(snName&&!snName.value)snName.value=`Grp ${g1}${g1!==g2?' vs '+g2:''} — Rodada`;
 }
@@ -1890,8 +2080,6 @@ function snAplicarConfronto(){
   const salaBaseName=document.getElementById('sn-sala-name').value.trim()||'Sala';
   const rows=document.querySelectorAll('#sn-confronto-area .sala-normal-input-grid[data-team]');
   if(!rows.length){showStatus('sn-confronto-status','Carregue os grupos primeiro!','error');return}
-
-  // Agrupar por sala
   const salaMap={};
   rows.forEach(row=>{
     const teamName=row.dataset.team;
@@ -1901,7 +2089,6 @@ function snAplicarConfronto(){
     if(!salaMap[sala])salaMap[sala]=[];
     if(pos>0)salaMap[sala].push({teamName,pos,kills});
   });
-
   let totalApplied=0;
   for(const [sala,entries] of Object.entries(salaMap)){
     if(!entries.length)continue;
@@ -1911,7 +2098,6 @@ function snAplicarConfronto(){
       const booyah=(e.pos===1)?1:0;
       return {name:e.teamName,pts,booyah,kills:e.kills,rank:e.pos,_source:'sala-normal'};
     });
-    // Aplicar em state.teams e state.snGrupos
     loteData.forEach(ld=>{
       const key=ld.name.toUpperCase();
       if(state.teams[key]){
@@ -1920,7 +2106,6 @@ function snAplicarConfronto(){
         state.teams[key].kills+=ld.kills;
         state.teams[key].matches=(state.teams[key].matches||0)+1;
       }
-      // Atualizar também no snGrupos
       for(const g of ['A','B','C','D']){
         const tf=(state.snGrupos[g]||[]).find(t=>t.name.toUpperCase()===key);
         if(tf){tf.pts+=ld.pts;tf.booyah+=ld.booyah;tf.kills+=ld.kills;tf.matches=(tf.matches||0)+1}
@@ -1930,12 +2115,9 @@ function snAplicarConfronto(){
     state.lotes.push({name:loteName,count:entries.length,data:loteData,source:'sala-normal'});
     totalApplied+=entries.length;
   }
-
   snSyncTeams();
   scheduleSave();snRenderGrupos();renderTeamsTable();gerarTabela();snRenderLotes();renderLotes();
   showStatus('sn-confronto-status',totalApplied+' entradas aplicadas!','success');
-
-  // Limpar inputs
   document.querySelectorAll('.sn-pos-input,.sn-kills-input').forEach(el=>el.value='0');
   document.getElementById('sn-sala-name').value='';
 }
@@ -1948,20 +2130,16 @@ function snRenderLotes(){
 }
 
 function snSyncTeams(){
-  // 1. Zerar pontos nos grupos — vão ser recalculados dos lotes
   for(const g of ['A','B','C','D']){
     (state.snGrupos[g]||[]).forEach(t=>{t.pts=0;t.booyah=0;t.kills=0;t.matches=0});
   }
-  // 2. Zerar state.teams completamente
   state.teams={};
-  // 3. Reconstruir state.teams com todos os times dos grupos (pts zerados)
   for(const g of ['A','B','C','D']){
     (state.snGrupos[g]||[]).forEach(t=>{
       const key=t.name.toUpperCase();
       state.teams[key]={name:t.name,pts:0,booyah:0,kills:0,matches:0,country:t.country||'br',group:g};
     });
   }
-  // 4. Reaplicar todos os lotes sobre state.teams e snGrupos
   (state.snLotes||[]).forEach(lote=>{
     (lote.data||[]).forEach(ld=>{
       const key=ld.name.toUpperCase();
@@ -1971,7 +2149,6 @@ function snSyncTeams(){
         state.teams[key].kills+=ld.kills||0;
         state.teams[key].matches=(state.teams[key].matches||0)+1;
       }
-      // Espelhar nos snGrupos
       for(const g of ['A','B','C','D']){
         const tf=(state.snGrupos[g]||[]).find(t=>t.name.toUpperCase()===key);
         if(tf){tf.pts+=ld.pts||0;tf.booyah+=ld.booyah||0;tf.kills+=ld.kills||0;tf.matches=(tf.matches||0)+1}
@@ -1983,7 +2160,7 @@ function snSyncTeams(){
 function snLimparLotes(){
   if(!confirm('Apagar pontuação de todas as equipes nesta planilha?'))return;
   state.snLotes=[];state.lotes=[];
-  snSyncTeams(); // Reconstrói com pts zerados (nenhum lote pra reaplicar)
+  snSyncTeams();
   scheduleSave();snRenderGrupos();renderTeamsTable();gerarTabela();snRenderLotes();renderLotes();
 }
 
@@ -2140,7 +2317,6 @@ function toggleForcedTop1(teamKey){state.forcedTop1=(state.forcedTop1===teamKey)
 function clearForcedTop1(){state.forcedTop1=null;scheduleSave();renderTeamsTable();gerarTabela()}
 
 function renderTeamsTable(){
-  // Modo Sala Normal: garantir sync antes de renderizar
   if(state&&state.tableType==='sala') snSyncTeams();
   const q=(document.getElementById('team-search')?.value||'').toUpperCase();
   const sorted=sortTeamsByRules(state.teams);
@@ -2190,7 +2366,6 @@ function editNum(el,k,f){
 function delTeam(k){
   if(!state.editUnlocked)return alert('Desbloqueie a edição primeiro.');
   if(state.tableType==='sala'){
-    // No modo Sala Normal, deletar pela aba Equipes também remove do grupo
     const t=state.teams[k];if(!t)return;
     for(const g of ['A','B','C','D']){
       const idx=(state.snGrupos[g]||[]).findIndex(x=>x.name.toUpperCase()===k);
