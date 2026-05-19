@@ -1345,5 +1345,687 @@ async function importFullBackup(){const s=document.getElementById('backup-textar
 
 window.addEventListener('load',init);
 </script>
+
+<script>
+(() => {
+  const PATCH_VERSION = '1.4.0';
+
+  const onReady = (fn) => {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fn, { once: true });
+    } else {
+      fn();
+    }
+  };
+
+  const num = (value, fallback = 0) => {
+    const parsed = parseInt(value, 10);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  };
+
+  function injectStyles() {
+    if (document.getElementById('slmm-upgrade-style')) return;
+
+    const style = document.createElement('style');
+    style.id = 'slmm-upgrade-style';
+    style.textContent = `
+      :root{
+        --patch-radius-lg:22px;
+        --patch-radius-md:16px;
+        --patch-radius-sm:12px;
+        --patch-shadow:0 18px 50px rgba(0,0,0,.28);
+        --patch-shadow-soft:0 10px 28px rgba(0,0,0,.18);
+      }
+
+      body{
+        background-image:
+          radial-gradient(circle at top, rgba(232,185,35,.12), transparent 32%),
+          radial-gradient(circle at bottom right, rgba(0,240,255,.08), transparent 28%),
+          linear-gradient(180deg, #07070b 0%, #0c0d13 100%);
+      }
+
+      .home-header,
+      .stats-strip,
+      .table-card,
+      .new-table-card,
+      .asset-upload-zone,
+      .asset-card,
+      .editor-header,
+      .card,
+      .modal,
+      .sidebar,
+      .control-row,
+      .range-config,
+      .grupo-card,
+      .confronto-select,
+      .sala-team-row,
+      .sala-normal-input-grid,
+      .picker-item,
+      .logo-pick-item,
+      .logo-picker-modal,
+      .storage-info,
+      .barras-toolbar,
+      .col-item,
+      .tiebreak-item,
+      .sub-tabs,
+      .tabs,
+      .table-pass-modal-area,
+      .teams-table-wrap,
+      .empty-home,
+      .empty-state,
+      .forced-top1-banner,
+      .lock-box {
+        border-radius: var(--patch-radius-md);
+        box-shadow: var(--patch-shadow-soft);
+      }
+
+      .btn,
+      .tab-btn,
+      .sub-tab-btn,
+      .page-tab,
+      .asset-tab,
+      .grupo-badge,
+      .tc-actions button,
+      .back-btn,
+      .search-input,
+      .dados-textarea,
+      .modal input,
+      .modal select,
+      .search-box input,
+      .table-name-input,
+      .control-row input[type="number"],
+      .control-row input[type="text"],
+      .control-row select,
+      .picker-section h4 .barra-controls .mini-btn,
+      .logo-picker-header input,
+      .lock-input {
+        border-radius: var(--patch-radius-sm);
+      }
+
+      .table-card,
+      .card,
+      .editor-header,
+      .modal,
+      .sidebar,
+      .logo-picker-modal,
+      .home-header,
+      .stats-strip {
+        backdrop-filter: blur(10px);
+      }
+
+      .table-card:hover,
+      .new-table-card:hover,
+      .asset-card:hover,
+      .picker-item:hover,
+      .logo-pick-item:hover,
+      .grupo-card:hover,
+      .sala-team-row:hover,
+      .sala-normal-input-grid:hover,
+      .col-item:hover,
+      .tiebreak-item:hover {
+        box-shadow: var(--patch-shadow);
+      }
+
+      .home-header h1 {
+        text-shadow: 0 10px 40px rgba(232,185,35,.16);
+      }
+
+      .table-card,
+      .card,
+      .editor-header,
+      .modal,
+      .sidebar,
+      .stats-strip,
+      .home-header {
+        border-color: rgba(255,255,255,.08);
+      }
+
+      .table-pass-modal-area,
+      .lock-screen,
+      #edit-lock-bar,
+      #table-pass-modal,
+      #change-pass-modal,
+      .slmm-password-note {
+        display: none !important;
+      }
+
+      .slmm-upgrade-badge {
+        display:inline-flex;
+        align-items:center;
+        gap:8px;
+        padding:8px 14px;
+        border-radius:999px;
+        border:1px solid rgba(0,240,255,.28);
+        background:rgba(0,240,255,.08);
+        color:var(--cyan);
+        font-family:var(--mono);
+        font-size:11px;
+        letter-spacing:1.2px;
+        text-transform:uppercase;
+      }
+
+      .slmm-upgrade-badge strong {
+        color:#fff;
+        font-weight:700;
+      }
+
+      .r-name-wrap {
+        display:flex;
+        flex-direction:column;
+        align-items:flex-start;
+        gap:2px;
+        min-width:0;
+      }
+
+      .r-extra-info {
+        font-family:var(--mono);
+        font-size:12px;
+        line-height:1.1;
+        letter-spacing:1px;
+        text-transform:uppercase;
+        color:var(--cyan);
+        text-shadow:1px 1px 0 #000;
+        opacity:.95;
+        white-space:nowrap;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        max-width:520px;
+      }
+
+      .row.top1-custom {
+        overflow: visible;
+        z-index: 25;
+      }
+
+      .row.top1-custom .box-logo,
+      .row.top1-custom .box-info,
+      .row.top1-custom .r-name-area {
+        overflow: visible;
+      }
+
+      .row.top1-custom .r-logo {
+        filter: drop-shadow(0 14px 20px rgba(0,0,0,.42));
+      }
+
+      .slmm-top1-section {
+        background: linear-gradient(180deg, rgba(0,240,255,.06), rgba(232,185,35,.04));
+        border: 1px solid rgba(0,240,255,.16);
+        padding: 14px;
+        border-radius: var(--patch-radius-md);
+      }
+
+      .slmm-top1-help {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--ink-mute);
+        letter-spacing: .8px;
+        line-height: 1.5;
+        margin: 0 0 12px 0;
+      }
+
+      .slmm-top1-text {
+        width:100%;
+        background:var(--bg-2);
+        border:1px solid var(--line);
+        color:var(--ink);
+        padding:9px 10px;
+        font-family:var(--mono);
+        font-size:12px;
+      }
+
+      .picker-section.slmm-top1-picker {
+        border: 1px solid rgba(0,240,255,.18);
+        padding: 14px;
+        border-radius: var(--patch-radius-md);
+        background: linear-gradient(180deg, rgba(0,240,255,.04), rgba(255,255,255,.01));
+      }
+    `;
+
+    document.head.appendChild(style);
+  }
+
+  function hidePasswordUI() {
+    document.getElementById('global-lock-screen')?.classList.add('hidden');
+    document.getElementById('edit-lock-bar')?.style.setProperty('display', 'none', 'important');
+
+    const changePassBtn = document.querySelector('[onclick="openChangeTablePass()"]');
+    if (changePassBtn) changePassBtn.style.display = 'none';
+
+    const passAreas = document.querySelectorAll('.table-pass-modal-area');
+    passAreas.forEach((el) => el.style.setProperty('display', 'none', 'important'));
+  }
+
+  function bumpVisualLabels() {
+    document.title = 'SLMM System 1.4';
+
+    const eyebrow = document.querySelector('.home-header .brand .eyebrow');
+    if (eyebrow) eyebrow.innerHTML = '<span class="live-dot"></span>SLMM CONTROL ROOM v1.4';
+
+    const tagline = document.querySelector('.home-header .tagline');
+    if (tagline) tagline.textContent = 'Geração de tabelas oficiais — visual refinado, TOP 1 independente e fluxo sem senha.';
+
+    const homeNav = document.querySelector('.home-nav');
+    if (homeNav && !document.getElementById('slmm-upgrade-badge')) {
+      const badge = document.createElement('div');
+      badge.id = 'slmm-upgrade-badge';
+      badge.className = 'slmm-upgrade-badge';
+      badge.innerHTML = '<strong>Patch ativo</strong> sem senha + top 1 independente';
+      homeNav.prepend(badge);
+    }
+  }
+
+  function installTop1Controls() {
+    const sidebar = document.getElementById('sidebar');
+    if (!sidebar || document.getElementById('top1-independent-controls')) return;
+
+    const section = document.createElement('div');
+    section.id = 'top1-independent-controls';
+    section.className = 'sidebar-section slmm-top1-section';
+    section.innerHTML = `
+      <h3 style="color:var(--cyan)">TOP 1 INDEPENDENTE</h3>
+      <p class="slmm-top1-help">Você pode dar um tratamento separado só para o 1º lugar: barra própria, logo maior, nome maior e uma informação extra exclusiva.</p>
+
+      <div class="control-row">
+        <label>Ativar TOP 1 custom</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="ctrl-top1-custom" onchange="updateControl()">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="control-row"><label>Altura TOP 1</label><input type="range" min="60" max="200" value="86" id="ctrl-top1-row-h" oninput="updateControl()"><span class="val" id="val-top1-row-h">86</span></div>
+      <div class="control-row"><label>Logo TOP 1 %</label><input type="range" min="60" max="800" value="190" id="ctrl-top1-logo-size" oninput="updateControl()"><span class="val" id="val-top1-logo-size">190</span></div>
+      <div class="control-row"><label>Logo TOP 1 X</label><input type="range" min="-160" max="160" value="0" id="ctrl-top1-logo-x" oninput="updateControl()"><span class="val" id="val-top1-logo-x">0</span></div>
+      <div class="control-row"><label>Logo TOP 1 Y</label><input type="range" min="-120" max="120" value="0" id="ctrl-top1-logo-y" oninput="updateControl()"><span class="val" id="val-top1-logo-y">0</span></div>
+      <div class="control-row"><label>Nome TOP 1</label><input type="range" min="16" max="90" value="34" id="ctrl-top1-name-size" oninput="updateControl()"><span class="val" id="val-top1-name-size">34</span></div>
+      <div class="control-row"><label>Nome TOP 1 X</label><input type="range" min="-160" max="160" value="0" id="ctrl-top1-name-x" oninput="updateControl()"><span class="val" id="val-top1-name-x">0</span></div>
+      <div class="control-row"><label>Nome TOP 1 Y</label><input type="range" min="-120" max="120" value="0" id="ctrl-top1-name-y" oninput="updateControl()"><span class="val" id="val-top1-name-y">0</span></div>
+      <div class="control-row"><label>Cor Nome TOP 1</label><input type="color" id="ctrl-top1-name-color" value="#ffe38a" oninput="updateControl()"></div>
+      <div class="control-row" style="flex-direction:column;align-items:flex-start;gap:8px">
+        <label style="width:100%">Info extra TOP 1</label>
+        <input type="text" id="ctrl-top1-extra-text" class="slmm-top1-text" placeholder="Ex: MVP / LÍDER / CAMPEÃO DO DIA">
+      </div>
+      <div class="control-row"><label>Info extra tam</label><input type="range" min="10" max="42" value="13" id="ctrl-top1-extra-size" oninput="updateControl()"><span class="val" id="val-top1-extra-size">13</span></div>
+      <div class="control-row"><label>Info extra X</label><input type="range" min="-160" max="160" value="0" id="ctrl-top1-extra-x" oninput="updateControl()"><span class="val" id="val-top1-extra-x">0</span></div>
+      <div class="control-row"><label>Info extra Y</label><input type="range" min="-120" max="120" value="0" id="ctrl-top1-extra-y" oninput="updateControl()"><span class="val" id="val-top1-extra-y">0</span></div>
+      <div class="control-row"><label>Cor info extra</label><input type="color" id="ctrl-top1-extra-color" value="#00f0ff" oninput="updateControl()"></div>
+    `;
+
+    const top3Section = Array.from(sidebar.querySelectorAll('.sidebar-section')).find((sec) => sec.querySelector('h3')?.textContent?.includes('TOP 3'));
+    if (top3Section) top3Section.after(section);
+    else sidebar.appendChild(section);
+
+    const extraText = document.getElementById('ctrl-top1-extra-text');
+    if (extraText) {
+      extraText.addEventListener('input', () => {
+        if (typeof state !== 'undefined') {
+          state.controls = state.controls || {};
+          state.controls['top1-extra-text'] = extraText.value;
+        }
+        if (typeof scheduleSave === 'function') scheduleSave();
+        if (typeof gerarTabela === 'function') gerarTabela();
+      });
+    }
+  }
+
+  function syncPatchedTextControls() {
+    const extraText = document.getElementById('ctrl-top1-extra-text');
+    if (extraText && typeof state !== 'undefined') {
+      extraText.value = state?.controls?.['top1-extra-text'] || '';
+    }
+  }
+
+  function installTop1AssetPicker() {
+    const container = document.getElementById('picker-container');
+    if (!container || document.getElementById('picker-top1-exclusive') || typeof assets === 'undefined' || typeof state === 'undefined') return;
+
+    const list = (assets || []).filter((a) => a.type === 'barra');
+    const selected = state?.assetRefs?.top1Barra || null;
+
+    const items = [
+      `<div class="picker-item clear-item${selected ? '' : ' selected'}" onclick="setSlotAsset('top1Barra',null)">∅ NENHUMA</div>`,
+      ...list.map((a) => `
+        <div class="picker-item${selected === a.id ? ' selected' : ''}" onclick="setSlotAsset('top1Barra','${a.id}')">
+          <img src="${a.data}">
+          <small>${escapeHtml(a.name)}</small>
+        </div>
+      `)
+    ].join('');
+
+    const section = document.createElement('div');
+    section.id = 'picker-top1-exclusive';
+    section.className = 'picker-section slmm-top1-picker';
+    section.innerHTML = `
+      <h4 style="color:var(--cyan)">BARRA EXCLUSIVA TOP 1</h4>
+      <p class="slmm-top1-help">Se selecionar uma barra aqui, o 1º lugar passa a usar esse visual separado das outras posições.</p>
+      <div class="picker-grid">${items}</div>
+    `;
+
+    container.prepend(section);
+  }
+
+  function applyTop1Overrides() {
+    const active = document.getElementById('ctrl-top1-custom')?.checked;
+    if (!active) return;
+
+    const rowHeight = num(document.getElementById('ctrl-top1-row-h')?.value, 86);
+    const logoScale = num(document.getElementById('ctrl-top1-logo-size')?.value, 190) / 100;
+    const logoX = num(document.getElementById('ctrl-top1-logo-x')?.value, 0);
+    const logoY = num(document.getElementById('ctrl-top1-logo-y')?.value, 0);
+    const nameSize = num(document.getElementById('ctrl-top1-name-size')?.value, 34);
+    const nameX = num(document.getElementById('ctrl-top1-name-x')?.value, 0);
+    const nameY = num(document.getElementById('ctrl-top1-name-y')?.value, 0);
+    const nameColor = document.getElementById('ctrl-top1-name-color')?.value || '#ffe38a';
+    const extraSize = num(document.getElementById('ctrl-top1-extra-size')?.value, 13);
+    const extraX = num(document.getElementById('ctrl-top1-extra-x')?.value, 0);
+    const extraY = num(document.getElementById('ctrl-top1-extra-y')?.value, 0);
+    const extraColor = document.getElementById('ctrl-top1-extra-color')?.value || '#00f0ff';
+
+    document.querySelectorAll('.row.top1-custom').forEach((row) => {
+      row.style.height = rowHeight + 'px';
+      row.style.overflow = 'visible';
+    });
+
+    document.querySelectorAll('.row.top1-custom .r-logo').forEach((el) => {
+      el.style.transform = `translate(${logoX}px, ${logoY}px) scale(${logoScale})`;
+      el.style.transformOrigin = 'center center';
+      el.style.maxWidth = 'none';
+      el.style.maxHeight = 'none';
+    });
+
+    document.querySelectorAll('.row.top1-custom .r-name').forEach((el) => {
+      el.style.fontSize = nameSize + 'px';
+      el.style.transform = `translate(${nameX}px, ${nameY}px)`;
+      el.style.color = nameColor;
+      el.style.lineHeight = '1';
+    });
+
+    document.querySelectorAll('.row.top1-custom .r-extra-info').forEach((el) => {
+      el.style.fontSize = extraSize + 'px';
+      el.style.transform = `translate(${extraX}px, ${extraY}px)`;
+      el.style.color = extraColor;
+    });
+  }
+
+  function forcePasswordlessMode() {
+    window.checkGlobalPass = function () {
+      document.getElementById('global-lock-screen')?.classList.add('hidden');
+    };
+
+    window.openTableWithPassCheck = function (id) {
+      doOpenTable(id, true);
+    };
+
+    window.checkTablePass = function () {
+      closeModal('table-pass-modal');
+    };
+
+    window.unlockEdit = function () {
+      if (typeof state !== 'undefined') state.editUnlocked = true;
+      document.getElementById('edit-lock-bar')?.style.setProperty('display', 'none', 'important');
+      if (typeof setEditorReadonly === 'function') setEditorReadonly(false);
+    };
+
+    window.openChangeTablePass = function () {
+      alert('As proteções por senha foram removidas nesta versão.');
+    };
+
+    window.confirmChangePass = function () {
+      if (typeof state !== 'undefined') state.tablePass = null;
+      document.getElementById('chg-pass-status') && showStatus('chg-pass-status', 'Proteção por senha removida.', 'success');
+      setTimeout(() => closeModal('change-pass-modal'), 300);
+      if (typeof scheduleSave === 'function') scheduleSave();
+    };
+
+    window.confirmNewTable = async function () {
+      const name = document.getElementById('new-table-name').value.trim();
+      if (!name) return showStatus('new-table-status', 'Digite um nome!', 'error');
+
+      const ttype = document.getElementById('new-table-type').value;
+      const t = {
+        id: uid(),
+        name,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        data: {
+          teams: {},
+          lotes: [],
+          controls: {},
+          pages: [{ name: 'Página 1', start: 1, end: 12 }],
+          currentPageIdx: 0,
+          columnOrder: ['pts', 'kills', 'booyah', 'matches', 'group'],
+          assetRefs: { teamLogos: {} },
+          barras: JSON.parse(JSON.stringify(DEFAULT_BARRAS)),
+          rules: JSON.parse(JSON.stringify(DEFAULT_RULES)),
+          forcedTop1: null,
+          tableType: ttype,
+          tablePass: null,
+          snGrupos: { A: [], B: [], C: [], D: [] },
+          snLotes: []
+        }
+      };
+
+      tables.push(t);
+      await dbPut(ST_TABLES, t);
+      closeModal('new-table-modal');
+      renderTablesList();
+      doOpenTable(t.id, true);
+    };
+
+    const originalDoOpenTable = window.doOpenTable;
+    window.doOpenTable = function (id) {
+      originalDoOpenTable(id, true);
+      if (typeof state !== 'undefined') {
+        state.tablePass = null;
+        state.editUnlocked = true;
+      }
+      if (typeof currentTable !== 'undefined' && currentTable?.data) {
+        currentTable.data.tablePass = null;
+      }
+      document.getElementById('edit-lock-bar')?.style.setProperty('display', 'none', 'important');
+      if (typeof setEditorReadonly === 'function') setEditorReadonly(false);
+      syncPatchedTextControls();
+      installTop1Controls();
+      installTop1AssetPicker();
+      applyTop1Overrides();
+    };
+
+    const originalSaveCurrentTable = window.saveCurrentTable;
+    window.saveCurrentTable = async function () {
+      if (typeof state !== 'undefined') state.tablePass = null;
+      if (typeof currentTable !== 'undefined' && currentTable?.data) currentTable.data.tablePass = null;
+      return originalSaveCurrentTable.apply(this, arguments);
+    };
+
+    const originalDuplicateTable = window.duplicateTable;
+    window.duplicateTable = async function (id) {
+      await originalDuplicateTable(id);
+      const last = tables?.[tables.length - 1];
+      if (last?.data) {
+        last.data.tablePass = null;
+        await dbPut(ST_TABLES, last);
+      }
+      renderTablesList();
+    };
+  }
+
+  function patchAssetPicker() {
+    const originalRenderAssetPicker = window.renderAssetPicker;
+    window.renderAssetPicker = function () {
+      originalRenderAssetPicker.apply(this, arguments);
+      installTop1AssetPicker();
+    };
+  }
+
+  function patchApplyControls() {
+    const originalApplyControls = window.applyControls;
+    window.applyControls = function () {
+      originalApplyControls.apply(this, arguments);
+      applyTop1Overrides();
+    };
+  }
+
+  function patchGerarTabela() {
+    window.gerarTabela = function () {
+      const cl = document.getElementById('col-left');
+      if (!cl) return;
+
+      const headerData = getAssetData(state.assetRefs.header);
+      const sorted = sortTeamsByRules(state.teams);
+      const sameBar = document.getElementById('ctrl-same-bar')?.checked || false;
+      const curPage = state.pages[state.currentPageIdx] || { start: 1, end: 12 };
+      const start = Math.max(1, curPage.start || 1);
+      const end = Math.max(start, curPage.end || start);
+      const slice = sorted.slice(start - 1, end);
+      const top1Custom = document.getElementById('ctrl-top1-custom')?.checked || false;
+      const top1ExtraText = document.getElementById('ctrl-top1-extra-text')?.value || state?.controls?.['top1-extra-text'] || '';
+
+      const firstBarraData = (() => {
+        const fb = (state.barras || []).find((b) => b.assetId);
+        return fb ? getAssetData(fb.assetId) : null;
+      })();
+
+      let html = headerData ? `<img src="${headerData}" class="table-header-strip">` : '';
+
+      for (let i = 0; i < slice.length; i++) {
+        const team = slice[i];
+        const rk = start + i;
+        const key = team.name.toUpperCase();
+        const logo = getTeamLogoData(key);
+        const flag = team.country ? `https://flagcdn.com/w80/${team.country}.png` : null;
+        const isTop1Custom = top1Custom && rk === 1;
+        const top1Bar = isTop1Custom && state.assetRefs?.top1Barra ? getAssetData(state.assetRefs.top1Barra) : null;
+        const rowBar = top1Bar || (sameBar ? firstBarraData : getBarraForRank(rk));
+        const rowStyle = rowBar ? `background-image:url('${rowBar}')` : 'background:rgba(10,16,37,0.8)';
+        const crownMark = state.forcedTop1 === key ? ' 👑' : '';
+        const extraHtml = isTop1Custom && top1ExtraText ? `<div class="r-extra-info">${escapeHtml(top1ExtraText)}</div>` : '';
+
+        html += `
+          <div class="row${isTop1Custom ? ' top1-custom' : ''}" data-rank="${rk}" style="${rowStyle}">
+            <div class="top-stripe"></div>
+            <div class="box-rank">${rk}</div>
+            <div class="box-logo">${logo ? `<img src="${logo}" class="r-logo">` : ''}</div>
+            <div class="box-info">
+              <div class="r-name-area">
+                ${flag ? `<img src="${flag}" class="r-flag" onerror="this.style.display='none'">` : ''}
+                <div class="r-name-wrap">
+                  <div class="r-name">${escapeHtml(team.name)}${crownMark}</div>
+                  ${extraHtml}
+                </div>
+              </div>
+              <div class="stat-floater stat-g">${escapeHtml(team.group || '-')}</div>
+              <div class="stat-floater stat-m">${team.matches || 0}</div>
+              <div class="stat-floater stat-b">${team.booyah}</div>
+              <div class="stat-floater stat-k">${team.kills}</div>
+              <div class="stat-floater stat-pts">${team.pts}</div>
+            </div>
+          </div>
+        `;
+      }
+
+      cl.innerHTML = html;
+      applyControls();
+    };
+  }
+
+  function patchBackupImport() {
+    window.importFullBackup = async function () {
+      const raw = document.getElementById('backup-textarea').value.trim();
+      if (!raw) return showStatus('backup-status', 'Cole ou selecione um arquivo', 'error');
+
+      try {
+        const incoming = JSON.parse(raw);
+        if (!incoming.tables || !Array.isArray(incoming.tables)) throw new Error('JSON inválido');
+        if (!confirm('Importar ' + incoming.tables.length + ' tabela(s)?')) return;
+
+        if (Array.isArray(incoming.assets)) {
+          for (const asset of incoming.assets) {
+            if (!asset?.storage_path) continue;
+            await dbPut(ST_ASSETS, {
+              id: asset.id,
+              type: asset.type,
+              name: asset.name,
+              storage_path: asset.storage_path,
+              createdAt: asset.createdAt || Date.now()
+            });
+          }
+        }
+
+        for (const table of incoming.tables) {
+          if (table?.data) table.data.tablePass = null;
+          await dbPut(ST_TABLES, table);
+        }
+
+        tables = await dbAll(ST_TABLES);
+        assets = await dbAll(ST_ASSETS);
+        showStatus('backup-status', 'Importado!', 'success');
+        setTimeout(() => {
+          closeModal('backup-modal');
+          renderHome();
+        }, 800);
+      } catch (error) {
+        console.error(error);
+        showStatus('backup-status', 'JSON inválido', 'error');
+      }
+    };
+  }
+
+  async function cleanupStoredPasswords() {
+    if (typeof tables === 'undefined' || !Array.isArray(tables)) return;
+
+    let changed = false;
+    for (const table of tables) {
+      if (table?.data?.tablePass) {
+        table.data.tablePass = null;
+        table.updatedAt = Date.now();
+        changed = true;
+        try {
+          await dbPut(ST_TABLES, table);
+        } catch (error) {
+          console.warn('Não consegui limpar senha antiga da tabela:', table?.name, error);
+        }
+      }
+    }
+
+    if (changed) {
+      try {
+        tables = await dbAll(ST_TABLES);
+        if (!document.body.classList.contains('editor-mode')) renderHome();
+      } catch (error) {
+        console.warn('Não consegui recarregar tabelas após limpeza de senha.', error);
+      }
+    }
+  }
+
+  function installPatch() {
+    injectStyles();
+    hidePasswordUI();
+    bumpVisualLabels();
+    installTop1Controls();
+    syncPatchedTextControls();
+    forcePasswordlessMode();
+    patchAssetPicker();
+    patchApplyControls();
+    patchGerarTabela();
+    patchBackupImport();
+    cleanupStoredPasswords();
+
+    console.info('[SLMM upgrade] patch', PATCH_VERSION, 'ativo');
+  }
+
+  onReady(() => {
+    const waitForCore = () => {
+      if (typeof renderHome === 'function' && typeof gerarTabela === 'function' && typeof updateControl === 'function') {
+        installPatch();
+      } else {
+        setTimeout(waitForCore, 120);
+      }
+    };
+
+    waitForCore();
+  });
+})();
+
+</script>
 </body>
 </html>
