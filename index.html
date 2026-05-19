@@ -1348,578 +1348,456 @@ window.addEventListener('load',init);
 
 <script>
 (() => {
-  const PATCH_VERSION = '1.5.0';
-
-  const TOP1_DEFAULTS = {
-    'top1-custom': false,
-    'top1-row-h': 92,
-    'top1-row-x': 0,
-    'top1-row-y': 0,
-    'top1-row-gap': 40,
-    'top1-rank-show': true,
-    'top1-rank-size': 32,
-    'top1-rank-x': 0,
-    'top1-rank-y': 0,
-    'top1-rank-color': '#ffffff',
-    'top1-logo-size': 210,
-    'top1-logo-x': 0,
-    'top1-logo-y': 0,
-    'top1-logo-rot': 0,
-    'top1-logo-opacity': 100,
-    'top1-flag-show': true,
-    'top1-flag-size': 35,
-    'top1-flag-x': 0,
-    'top1-flag-y': 0,
-    'top1-flag-opacity': 100,
-    'top1-name-size': 36,
-    'top1-name-x': 0,
-    'top1-name-y': 0,
-    'top1-name-color': '#ffe38a',
-    'top1-name-width': 520,
-    'top1-extra-text': '',
-    'top1-extra-mode': 'below-bar',
-    'top1-extra-size': 14,
-    'top1-extra-x': 0,
-    'top1-extra-y': 0,
-    'top1-extra-color': '#00f0ff',
-    'top1-extra-bg': false,
-    'top1-extra-bg-color': '#0f0f17',
-    'top1-extra-bg-opacity': 75,
-    'top1-extra-padding': 8,
-    'top1-extra-radius': 10,
-    'top1-extra-width': 320
+  const DEFAULTS = {
+    top1Custom: false,
+    top1RowH: 92,
+    top1RowX: 0,
+    top1RowY: 0,
+    top1RowGap: 40,
+    top1RankShow: true,
+    top1RankSize: 32,
+    top1RankX: 0,
+    top1RankY: 0,
+    top1RankColor: '#ffffff',
+    top1LogoSize: 210,
+    top1LogoX: 0,
+    top1LogoY: 0,
+    top1LogoRot: 0,
+    top1LogoOpacity: 100,
+    top1FlagShow: true,
+    top1FlagSize: 35,
+    top1FlagX: 0,
+    top1FlagY: 0,
+    top1FlagOpacity: 100,
+    top1NameSize: 36,
+    top1NameX: 0,
+    top1NameY: 0,
+    top1NameWidth: 520,
+    top1NameColor: '#ffe38a',
+    top1ExtraText: '',
+    top1ExtraMode: 'below-bar',
+    top1ExtraSize: 14,
+    top1ExtraWidth: 320,
+    top1ExtraX: 0,
+    top1ExtraY: 0,
+    top1ExtraColor: '#00f0ff',
+    top1ExtraBg: false,
+    top1ExtraBgColor: '#0f0f17',
+    top1ExtraBgOpacity: 75,
+    top1ExtraPadding: 8,
+    top1ExtraRadius: 10
   };
 
-  const onReady = (fn) => {
+  const BAR_SLOT = 'top1Barra';
+
+  function whenReady(fn) {
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', fn, { once: true });
     } else {
       fn();
     }
-  };
-
-  const num = (value, fallback = 0) => {
-    const parsed = parseInt(value, 10);
-    return Number.isFinite(parsed) ? parsed : fallback;
-  };
-
-  const alphaHex = (hex, opacityPercent) => {
-    const clean = String(hex || '').replace('#', '').trim();
-    const full = clean.length === 3 ? clean.split('').map((c) => c + c).join('') : clean;
-    if (!/^[0-9a-fA-F]{6}$/.test(full)) return 'rgba(15,15,23,.75)';
-    const alpha = Math.max(0, Math.min(255, Math.round((num(opacityPercent, 75) / 100) * 255)));
-    return `#${full}${alpha.toString(16).padStart(2, '0')}`;
-  };
-
-  function getCtrlValue(key) {
-    const el = document.getElementById('ctrl-' + key);
-    if (!el) return TOP1_DEFAULTS[key];
-    if (el.type === 'checkbox') return !!el.checked;
-    return el.value;
   }
 
-  function setCtrlValue(key, value) {
-    const el = document.getElementById('ctrl-' + key);
+  function toInt(value, fallback) {
+    const n = parseInt(value, 10);
+    return Number.isFinite(n) ? n : fallback;
+  }
+
+  function alphaHex(hex, opacityPercent) {
+    const raw = String(hex || '').replace('#', '').trim();
+    const full = raw.length === 3 ? raw.split('').map((c) => c + c).join('') : raw;
+    if (!/^[0-9a-fA-F]{6}$/.test(full)) return 'transparent';
+    const alpha = Math.max(0, Math.min(255, Math.round((toInt(opacityPercent, 75) / 100) * 255)));
+    return '#' + full + alpha.toString(16).padStart(2, '0');
+  }
+
+  function ensureControlState() {
+    if (typeof state === 'undefined') return;
+    state.controls = state.controls || {};
+    Object.entries(DEFAULTS).forEach(([key, value]) => {
+      if (state.controls[key] === undefined) state.controls[key] = value;
+    });
+    state.assetRefs = state.assetRefs || { teamLogos: {} };
+    if (!state.assetRefs.teamLogos) state.assetRefs.teamLogos = {};
+  }
+
+  function getStateValue(key) {
+    ensureControlState();
+    if (typeof state === 'undefined') return DEFAULTS[key];
+    return state.controls[key] === undefined ? DEFAULTS[key] : state.controls[key];
+  }
+
+  function getCtrlEl(key) {
+    return document.getElementById('ctrl-' + key);
+  }
+
+  function getValue(key) {
+    const el = getCtrlEl(key);
+    if (!el) return getStateValue(key);
+    return el.type === 'checkbox' ? !!el.checked : el.value;
+  }
+
+  function setControlValue(key, value) {
+    const el = getCtrlEl(key);
     if (!el) return;
     if (el.type === 'checkbox') el.checked = !!value;
     else el.value = value;
-    const valEl = document.getElementById('val-' + key);
-    if (valEl) valEl.textContent = String(value);
+    const out = document.getElementById('val-' + key);
+    if (out) out.textContent = String(value);
   }
 
-  function ensureTop1ControlsState() {
-    if (typeof state === 'undefined') return;
-    state.controls = state.controls || {};
-    Object.entries(TOP1_DEFAULTS).forEach(([key, value]) => {
-      if (state.controls[key] === undefined) state.controls[key] = value;
-    });
+  function syncControlsFromState() {
+    ensureControlState();
+    Object.keys(DEFAULTS).forEach((key) => setControlValue(key, getStateValue(key)));
   }
 
-  function syncPatchedControls() {
-    ensureTop1ControlsState();
-    Object.keys(TOP1_DEFAULTS).forEach((key) => {
-      setCtrlValue(key, state?.controls?.[key] ?? TOP1_DEFAULTS[key]);
-    });
-  }
-
-  function updatePatchedTextControl(key, value) {
-    if (typeof state === 'undefined') return;
-    state.controls = state.controls || {};
-    state.controls[key] = value;
-    if (typeof scheduleSave === 'function') scheduleSave();
-    if (typeof gerarTabela === 'function') gerarTabela();
-  }
-
-  function injectStyles() {
-    if (document.getElementById('slmm-upgrade-style')) return;
-
+  function installStyle() {
+    if (document.getElementById('slmm-top1-style')) return;
     const style = document.createElement('style');
-    style.id = 'slmm-upgrade-style';
+    style.id = 'slmm-top1-style';
     style.textContent = `
-      :root{
-        --patch-radius-lg:22px;
-        --patch-radius-md:16px;
-        --patch-radius-sm:12px;
-        --patch-shadow:0 18px 50px rgba(0,0,0,.28);
-        --patch-shadow-soft:0 10px 28px rgba(0,0,0,.18);
-      }
-
-      body{
-        background-image:
-          radial-gradient(circle at top, rgba(232,185,35,.12), transparent 32%),
-          radial-gradient(circle at bottom right, rgba(0,240,255,.08), transparent 28%),
-          linear-gradient(180deg, #07070b 0%, #0c0d13 100%);
-      }
-
-      .home-header,
-      .stats-strip,
-      .table-card,
-      .new-table-card,
-      .asset-upload-zone,
-      .asset-card,
-      .editor-header,
-      .card,
-      .modal,
-      .sidebar,
-      .control-row,
-      .range-config,
-      .grupo-card,
-      .confronto-select,
-      .sala-team-row,
-      .sala-normal-input-grid,
-      .picker-item,
-      .logo-pick-item,
-      .logo-picker-modal,
-      .storage-info,
-      .barras-toolbar,
-      .col-item,
-      .tiebreak-item,
-      .sub-tabs,
-      .tabs,
-      .table-pass-modal-area,
-      .teams-table-wrap,
-      .empty-home,
-      .empty-state,
-      .forced-top1-banner,
-      .lock-box {
-        border-radius: var(--patch-radius-md);
-        box-shadow: var(--patch-shadow-soft);
-      }
-
-      .btn,
-      .tab-btn,
-      .sub-tab-btn,
-      .page-tab,
-      .asset-tab,
-      .grupo-badge,
-      .tc-actions button,
-      .back-btn,
-      .search-input,
-      .dados-textarea,
-      .modal input,
-      .modal select,
-      .search-box input,
-      .table-name-input,
-      .control-row input[type="number"],
-      .control-row input[type="text"],
-      .control-row select,
-      .picker-section h4 .barra-controls .mini-btn,
-      .logo-picker-header input,
-      .lock-input {
-        border-radius: var(--patch-radius-sm);
-      }
-
-      .table-card,
-      .card,
-      .editor-header,
-      .modal,
-      .sidebar,
-      .logo-picker-modal,
-      .home-header,
-      .stats-strip {
-        backdrop-filter: blur(10px);
-      }
-
-      .table-card:hover,
-      .new-table-card:hover,
-      .asset-card:hover,
-      .picker-item:hover,
-      .logo-pick-item:hover,
-      .grupo-card:hover,
-      .sala-team-row:hover,
-      .sala-normal-input-grid:hover,
-      .col-item:hover,
-      .tiebreak-item:hover {
-        box-shadow: var(--patch-shadow);
-      }
-
-      .home-header h1 {
-        text-shadow: 0 10px 40px rgba(232,185,35,.16);
-      }
-
-      .table-card,
-      .card,
-      .editor-header,
-      .modal,
-      .sidebar,
-      .stats-strip,
-      .home-header {
-        border-color: rgba(255,255,255,.08);
-      }
-
-      .table-pass-modal-area,
-      .lock-screen,
-      #edit-lock-bar,
-      #table-pass-modal,
-      #change-pass-modal,
-      .slmm-password-note {
-        display: none !important;
-      }
-
-      .slmm-upgrade-badge {
-        display:inline-flex;
-        align-items:center;
-        gap:8px;
-        padding:8px 14px;
-        border-radius:999px;
-        border:1px solid rgba(0,240,255,.28);
-        background:rgba(0,240,255,.08);
-        color:var(--cyan);
-        font-family:var(--mono);
-        font-size:11px;
-        letter-spacing:1.2px;
-        text-transform:uppercase;
-      }
-
-      .slmm-upgrade-badge strong {
-        color:#fff;
-        font-weight:700;
-      }
-
-      .r-name-wrap {
-        display:flex;
-        flex-direction:column;
-        align-items:flex-start;
-        gap:2px;
-        min-width:0;
-        max-width:100%;
-      }
-
-      .r-extra-info {
-        font-family:var(--mono);
-        font-size:12px;
-        line-height:1.1;
-        letter-spacing:1px;
-        text-transform:uppercase;
-        color:var(--cyan);
-        text-shadow:1px 1px 0 #000;
-        opacity:.95;
-        white-space:nowrap;
-        overflow:hidden;
-        text-overflow:ellipsis;
-      }
-
-      .row.top1-custom {
-        overflow: visible;
-        z-index: 40;
-      }
-
-      .row.top1-custom .box-logo,
-      .row.top1-custom .box-info,
-      .row.top1-custom .r-name-area,
-      .row.top1-custom .r-name-wrap {
-        overflow: visible;
-      }
-
-      .row.top1-custom .r-logo {
-        filter: drop-shadow(0 14px 20px rgba(0,0,0,.42));
-      }
-
-      .top1-extra-below-bar,
-      .top1-extra-free {
-        position:absolute;
-        left:0;
-        top:0;
-        z-index:45;
-        font-family:var(--mono);
-        letter-spacing:1px;
-        text-transform:uppercase;
-        white-space:nowrap;
-      }
-
-      .top1-extra-below-bar {
-        top:calc(100% + 8px);
-      }
-
-      .top1-extra-free {
-        top:50%;
-        left:50%;
-      }
-
-      .slmm-top1-section {
-        background: linear-gradient(180deg, rgba(0,240,255,.06), rgba(232,185,35,.04));
-        border: 1px solid rgba(0,240,255,.16);
-        padding: 14px;
-        border-radius: var(--patch-radius-md);
-      }
-
-      .slmm-top1-help {
-        font-family: var(--mono);
-        font-size: 10px;
-        color: var(--ink-mute);
-        letter-spacing: .8px;
-        line-height: 1.5;
-        margin: 0 0 12px 0;
-      }
-
-      .slmm-top1-text {
-        width:100%;
-        background:var(--bg-2);
-        border:1px solid var(--line);
-        color:var(--ink);
-        padding:9px 10px;
-        font-family:var(--mono);
-        font-size:12px;
-      }
-
-      .picker-section.slmm-top1-picker {
-        border: 1px solid rgba(0,240,255,.18);
-        padding: 14px;
-        border-radius: var(--patch-radius-md);
-        background: linear-gradient(180deg, rgba(0,240,255,.04), rgba(255,255,255,.01));
-      }
+      .table-pass-modal-area,.lock-screen,#edit-lock-bar,#table-pass-modal,#change-pass-modal{display:none!important}
+      .slmm-top1-box{background:linear-gradient(180deg,rgba(0,240,255,.06),rgba(232,185,35,.04));border:1px solid rgba(0,240,255,.16);padding:14px;border-radius:16px;box-shadow:0 10px 28px rgba(0,0,0,.18)}
+      .slmm-top1-help{font-family:var(--mono);font-size:10px;color:var(--ink-mute);letter-spacing:.8px;line-height:1.5;margin:0 0 12px}
+      .slmm-top1-text{width:100%;background:var(--bg-2);border:1px solid var(--line);color:var(--ink);padding:9px 10px;font-family:var(--mono);font-size:12px}
+      .slmm-top1-picker{border:1px solid rgba(0,240,255,.18);padding:14px;border-radius:16px;background:linear-gradient(180deg,rgba(0,240,255,.04),rgba(255,255,255,.01))}
+      .row.top1-custom{overflow:visible;z-index:40}
+      .row.top1-custom .box-logo,.row.top1-custom .box-info,.row.top1-custom .r-name-area,.row.top1-custom .r-name-wrap{overflow:visible}
+      .row.top1-custom .r-logo{filter:drop-shadow(0 14px 20px rgba(0,0,0,.42))}
+      .r-name-wrap{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0;max-width:100%}
+      .r-extra-info,.top1-extra-below-bar,.top1-extra-free{font-family:var(--mono);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .top1-extra-below-bar,.top1-extra-free{position:absolute;left:0;top:0;z-index:45}
+      .top1-extra-below-bar{top:calc(100% + 8px)}
+      .top1-extra-free{top:50%;left:50%}
     `;
-
     document.head.appendChild(style);
   }
 
   function hidePasswordUI() {
     document.getElementById('global-lock-screen')?.classList.add('hidden');
     document.getElementById('edit-lock-bar')?.style.setProperty('display', 'none', 'important');
-
-    const changePassBtn = document.querySelector('[onclick="openChangeTablePass()"]');
-    if (changePassBtn) changePassBtn.style.display = 'none';
-
-    document.querySelectorAll('.table-pass-modal-area').forEach((el) => {
-      el.style.setProperty('display', 'none', 'important');
-    });
+    document.querySelector('[onclick="openChangeTablePass()"]')?.style.setProperty('display', 'none', 'important');
+    document.querySelectorAll('.table-pass-modal-area').forEach((el) => el.style.setProperty('display', 'none', 'important'));
   }
 
-  function bumpVisualLabels() {
-    document.title = 'SLMM System 1.5';
-
-    const eyebrow = document.querySelector('.home-header .brand .eyebrow');
-    if (eyebrow) eyebrow.innerHTML = '<span class="live-dot"></span>SLMM CONTROL ROOM v1.5';
-
-    const tagline = document.querySelector('.home-header .tagline');
-    if (tagline) tagline.textContent = 'Geração de tabelas oficiais — visual refinado, TOP 1 com liberdade máxima e fluxo sem senha.';
-
+  function installBadge() {
     const homeNav = document.querySelector('.home-nav');
-    if (homeNav && !document.getElementById('slmm-upgrade-badge')) {
-      const badge = document.createElement('div');
-      badge.id = 'slmm-upgrade-badge';
-      badge.className = 'slmm-upgrade-badge';
-      badge.innerHTML = '<strong>Patch ativo</strong> top 1 com liberdade máxima';
-      homeNav.prepend(badge);
-    }
+    if (!homeNav || document.getElementById('slmm-top1-badge')) return;
+    const badge = document.createElement('div');
+    badge.id = 'slmm-top1-badge';
+    badge.style.cssText = 'display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(0,240,255,.28);background:rgba(0,240,255,.08);color:var(--cyan);font-family:var(--mono);font-size:11px;letter-spacing:1.2px;text-transform:uppercase';
+    badge.innerHTML = '<strong style="color:#fff">Patch ativo</strong> top 1 livre';
+    homeNav.prepend(badge);
   }
 
   function installTop1Controls() {
     const sidebar = document.getElementById('sidebar');
-    if (!sidebar || document.getElementById('top1-independent-controls')) return;
+    if (!sidebar || document.getElementById('slmm-top1-controls')) return;
 
-    const section = document.createElement('div');
-    section.id = 'top1-independent-controls';
-    section.className = 'sidebar-section slmm-top1-section';
-    section.innerHTML = `
+    const box = document.createElement('div');
+    box.id = 'slmm-top1-controls';
+    box.className = 'sidebar-section slmm-top1-box';
+    box.innerHTML = `
       <h3 style="color:var(--cyan)">TOP 1 ESPECIAL</h3>
-      <p class="slmm-top1-help">Aqui você consegue deixar o TOP 1 praticamente livre: mover barra inteira, logo, nome, bandeira, rank e texto extra como quiser.</p>
+      <p class="slmm-top1-help">Agora você consegue deixar o TOP 1 bem mais livre: Helder embaixo da barra, bandeira só dele, logo solta e ajuste fino geral.</p>
+      <div class="control-row"><label>Ativar</label><label class="toggle-switch"><input type="checkbox" id="ctrl-top1-custom" onchange="updateControl()"><span class="toggle-slider"></span></label></div>
 
-      <div class="control-row">
-        <label>Ativar TOP 1 especial</label>
-        <label class="toggle-switch">
-          <input type="checkbox" id="ctrl-top1-custom" onchange="updateControl()">
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-
-      <h3 style="color:var(--cyan)">BARRA / LINHA</h3>
-      <div class="control-row"><label>Altura TOP 1</label><input type="range" min="60" max="220" value="92" id="ctrl-top1-row-h" oninput="updateControl()"><span class="val" id="val-top1-row-h">92</span></div>
-      <div class="control-row"><label>Barra X</label><input type="range" min="-400" max="400" value="0" id="ctrl-top1-row-x" oninput="updateControl()"><span class="val" id="val-top1-row-x">0</span></div>
-      <div class="control-row"><label>Barra Y</label><input type="range" min="-250" max="250" value="0" id="ctrl-top1-row-y" oninput="updateControl()"><span class="val" id="val-top1-row-y">0</span></div>
+      <h3 style="color:var(--cyan)">BARRA</h3>
+      <div class="control-row"><label>Altura</label><input type="range" min="60" max="220" value="92" id="ctrl-top1-row-h" oninput="updateControl()"><span class="val" id="val-top1-row-h">92</span></div>
+      <div class="control-row"><label>X</label><input type="range" min="-400" max="400" value="0" id="ctrl-top1-row-x" oninput="updateControl()"><span class="val" id="val-top1-row-x">0</span></div>
+      <div class="control-row"><label>Y</label><input type="range" min="-250" max="250" value="0" id="ctrl-top1-row-y" oninput="updateControl()"><span class="val" id="val-top1-row-y">0</span></div>
       <div class="control-row"><label>Espaço abaixo</label><input type="range" min="0" max="180" value="40" id="ctrl-top1-row-gap" oninput="updateControl()"><span class="val" id="val-top1-row-gap">40</span></div>
 
       <h3 style="color:var(--cyan)">RANK</h3>
-      <div class="control-row"><label>Mostrar rank</label><label class="toggle-switch"><input type="checkbox" id="ctrl-top1-rank-show" checked onchange="updateControl()"><span class="toggle-slider"></span></label></div>
-      <div class="control-row"><label>Rank tamanho</label><input type="range" min="16" max="90" value="32" id="ctrl-top1-rank-size" oninput="updateControl()"><span class="val" id="val-top1-rank-size">32</span></div>
-      <div class="control-row"><label>Rank X</label><input type="range" min="-250" max="250" value="0" id="ctrl-top1-rank-x" oninput="updateControl()"><span class="val" id="val-top1-rank-x">0</span></div>
-      <div class="control-row"><label>Rank Y</label><input type="range" min="-250" max="250" value="0" id="ctrl-top1-rank-y" oninput="updateControl()"><span class="val" id="val-top1-rank-y">0</span></div>
-      <div class="control-row"><label>Cor do rank</label><input type="color" id="ctrl-top1-rank-color" value="#ffffff" oninput="updateControl()"></div>
+      <div class="control-row"><label>Mostrar</label><label class="toggle-switch"><input type="checkbox" id="ctrl-top1-rank-show" checked onchange="updateControl()"><span class="toggle-slider"></span></label></div>
+      <div class="control-row"><label>Tamanho</label><input type="range" min="16" max="90" value="32" id="ctrl-top1-rank-size" oninput="updateControl()"><span class="val" id="val-top1-rank-size">32</span></div>
+      <div class="control-row"><label>X</label><input type="range" min="-250" max="250" value="0" id="ctrl-top1-rank-x" oninput="updateControl()"><span class="val" id="val-top1-rank-x">0</span></div>
+      <div class="control-row"><label>Y</label><input type="range" min="-250" max="250" value="0" id="ctrl-top1-rank-y" oninput="updateControl()"><span class="val" id="val-top1-rank-y">0</span></div>
+      <div class="control-row"><label>Cor</label><input type="color" id="ctrl-top1-rank-color" value="#ffffff" oninput="updateControl()"></div>
 
       <h3 style="color:var(--cyan)">LOGO</h3>
-      <div class="control-row"><label>Logo %</label><input type="range" min="60" max="1500" value="210" id="ctrl-top1-logo-size" oninput="updateControl()"><span class="val" id="val-top1-logo-size">210</span></div>
-      <div class="control-row"><label>Logo X</label><input type="range" min="-500" max="500" value="0" id="ctrl-top1-logo-x" oninput="updateControl()"><span class="val" id="val-top1-logo-x">0</span></div>
-      <div class="control-row"><label>Logo Y</label><input type="range" min="-500" max="500" value="0" id="ctrl-top1-logo-y" oninput="updateControl()"><span class="val" id="val-top1-logo-y">0</span></div>
-      <div class="control-row"><label>Logo rotação</label><input type="range" min="-180" max="180" value="0" id="ctrl-top1-logo-rot" oninput="updateControl()"><span class="val" id="val-top1-logo-rot">0</span></div>
-      <div class="control-row"><label>Logo opacidade</label><input type="range" min="0" max="100" value="100" id="ctrl-top1-logo-opacity" oninput="updateControl()"><span class="val" id="val-top1-logo-opacity">100</span></div>
+      <div class="control-row"><label>%</label><input type="range" min="60" max="1500" value="210" id="ctrl-top1-logo-size" oninput="updateControl()"><span class="val" id="val-top1-logo-size">210</span></div>
+      <div class="control-row"><label>X</label><input type="range" min="-500" max="500" value="0" id="ctrl-top1-logo-x" oninput="updateControl()"><span class="val" id="val-top1-logo-x">0</span></div>
+      <div class="control-row"><label>Y</label><input type="range" min="-500" max="500" value="0" id="ctrl-top1-logo-y" oninput="updateControl()"><span class="val" id="val-top1-logo-y">0</span></div>
+      <div class="control-row"><label>Rotação</label><input type="range" min="-180" max="180" value="0" id="ctrl-top1-logo-rot" oninput="updateControl()"><span class="val" id="val-top1-logo-rot">0</span></div>
+      <div class="control-row"><label>Opacidade</label><input type="range" min="0" max="100" value="100" id="ctrl-top1-logo-opacity" oninput="updateControl()"><span class="val" id="val-top1-logo-opacity">100</span></div>
 
       <h3 style="color:var(--cyan)">BANDEIRA</h3>
-      <div class="control-row"><label>Mostrar só no TOP 1</label><label class="toggle-switch"><input type="checkbox" id="ctrl-top1-flag-show" checked onchange="updateControl()"><span class="toggle-slider"></span></label></div>
-      <div class="control-row"><label>Bandeira tamanho</label><input type="range" min="0" max="200" value="35" id="ctrl-top1-flag-size" oninput="updateControl()"><span class="val" id="val-top1-flag-size">35</span></div>
-      <div class="control-row"><label>Bandeira X</label><input type="range" min="-300" max="300" value="0" id="ctrl-top1-flag-x" oninput="updateControl()"><span class="val" id="val-top1-flag-x">0</span></div>
-      <div class="control-row"><label>Bandeira Y</label><input type="range" min="-300" max="300" value="0" id="ctrl-top1-flag-y" oninput="updateControl()"><span class="val" id="val-top1-flag-y">0</span></div>
-      <div class="control-row"><label>Bandeira opacidade</label><input type="range" min="0" max="100" value="100" id="ctrl-top1-flag-opacity" oninput="updateControl()"><span class="val" id="val-top1-flag-opacity">100</span></div>
+      <div class="control-row"><label>Mostrar</label><label class="toggle-switch"><input type="checkbox" id="ctrl-top1-flag-show" checked onchange="updateControl()"><span class="toggle-slider"></span></label></div>
+      <div class="control-row"><label>Tamanho</label><input type="range" min="0" max="200" value="35" id="ctrl-top1-flag-size" oninput="updateControl()"><span class="val" id="val-top1-flag-size">35</span></div>
+      <div class="control-row"><label>X</label><input type="range" min="-300" max="300" value="0" id="ctrl-top1-flag-x" oninput="updateControl()"><span class="val" id="val-top1-flag-x">0</span></div>
+      <div class="control-row"><label>Y</label><input type="range" min="-300" max="300" value="0" id="ctrl-top1-flag-y" oninput="updateControl()"><span class="val" id="val-top1-flag-y">0</span></div>
+      <div class="control-row"><label>Opacidade</label><input type="range" min="0" max="100" value="100" id="ctrl-top1-flag-opacity" oninput="updateControl()"><span class="val" id="val-top1-flag-opacity">100</span></div>
 
       <h3 style="color:var(--cyan)">NOME</h3>
-      <div class="control-row"><label>Nome tamanho</label><input type="range" min="16" max="120" value="36" id="ctrl-top1-name-size" oninput="updateControl()"><span class="val" id="val-top1-name-size">36</span></div>
-      <div class="control-row"><label>Nome X</label><input type="range" min="-400" max="400" value="0" id="ctrl-top1-name-x" oninput="updateControl()"><span class="val" id="val-top1-name-x">0</span></div>
-      <div class="control-row"><label>Nome Y</label><input type="range" min="-300" max="300" value="0" id="ctrl-top1-name-y" oninput="updateControl()"><span class="val" id="val-top1-name-y">0</span></div>
-      <div class="control-row"><label>Nome largura</label><input type="range" min="120" max="900" value="520" id="ctrl-top1-name-width" oninput="updateControl()"><span class="val" id="val-top1-name-width">520</span></div>
-      <div class="control-row"><label>Cor do nome</label><input type="color" id="ctrl-top1-name-color" value="#ffe38a" oninput="updateControl()"></div>
+      <div class="control-row"><label>Tamanho</label><input type="range" min="16" max="120" value="36" id="ctrl-top1-name-size" oninput="updateControl()"><span class="val" id="val-top1-name-size">36</span></div>
+      <div class="control-row"><label>X</label><input type="range" min="-400" max="400" value="0" id="ctrl-top1-name-x" oninput="updateControl()"><span class="val" id="val-top1-name-x">0</span></div>
+      <div class="control-row"><label>Y</label><input type="range" min="-300" max="300" value="0" id="ctrl-top1-name-y" oninput="updateControl()"><span class="val" id="val-top1-name-y">0</span></div>
+      <div class="control-row"><label>Largura</label><input type="range" min="120" max="900" value="520" id="ctrl-top1-name-width" oninput="updateControl()"><span class="val" id="val-top1-name-width">520</span></div>
+      <div class="control-row"><label>Cor</label><input type="color" id="ctrl-top1-name-color" value="#ffe38a" oninput="updateControl()"></div>
 
-      <h3 style="color:var(--cyan)">TEXTO EXTRA / HELDER</h3>
-      <div class="control-row" style="flex-direction:column;align-items:flex-start;gap:8px">
-        <label style="width:100%">Texto</label>
-        <input type="text" id="ctrl-top1-extra-text" class="slmm-top1-text" placeholder="Ex: HELDER / MVP / CAMPEÃO">
-      </div>
-      <div class="control-row"><label>Modo</label>
-        <select id="ctrl-top1-extra-mode" onchange="updateControl()" style="width:140px">
-          <option value="below-bar">Embaixo da barra</option>
-          <option value="below-name">Embaixo do nome</option>
-          <option value="free">Livre</option>
-        </select>
-      </div>
-      <div class="control-row"><label>Texto tamanho</label><input type="range" min="10" max="70" value="14" id="ctrl-top1-extra-size" oninput="updateControl()"><span class="val" id="val-top1-extra-size">14</span></div>
-      <div class="control-row"><label>Texto largura</label><input type="range" min="100" max="800" value="320" id="ctrl-top1-extra-width" oninput="updateControl()"><span class="val" id="val-top1-extra-width">320</span></div>
-      <div class="control-row"><label>Texto X</label><input type="range" min="-600" max="600" value="0" id="ctrl-top1-extra-x" oninput="updateControl()"><span class="val" id="val-top1-extra-x">0</span></div>
-      <div class="control-row"><label>Texto Y</label><input type="range" min="-400" max="400" value="0" id="ctrl-top1-extra-y" oninput="updateControl()"><span class="val" id="val-top1-extra-y">0</span></div>
-      <div class="control-row"><label>Cor do texto</label><input type="color" id="ctrl-top1-extra-color" value="#00f0ff" oninput="updateControl()"></div>
-      <div class="control-row"><label>Fundo no texto</label><label class="toggle-switch"><input type="checkbox" id="ctrl-top1-extra-bg" onchange="updateControl()"><span class="toggle-slider"></span></label></div>
-      <div class="control-row"><label>Cor do fundo</label><input type="color" id="ctrl-top1-extra-bg-color" value="#0f0f17" oninput="updateControl()"></div>
-      <div class="control-row"><label>Fundo opacidade</label><input type="range" min="0" max="100" value="75" id="ctrl-top1-extra-bg-opacity" oninput="updateControl()"><span class="val" id="val-top1-extra-bg-opacity">75</span></div>
+      <h3 style="color:var(--cyan)">HELDER / TEXTO EXTRA</h3>
+      <div class="control-row" style="flex-direction:column;align-items:flex-start;gap:8px"><label style="width:100%">Texto</label><input type="text" id="ctrl-top1-extra-text" class="slmm-top1-text" placeholder="Ex: HELDER / MVP / CAMPEÃO"></div>
+      <div class="control-row"><label>Modo</label><select id="ctrl-top1-extra-mode" onchange="updateControl()" style="width:150px"><option value="below-bar">Embaixo da barra</option><option value="below-name">Embaixo do nome</option><option value="free">Livre</option></select></div>
+      <div class="control-row"><label>Tamanho</label><input type="range" min="10" max="70" value="14" id="ctrl-top1-extra-size" oninput="updateControl()"><span class="val" id="val-top1-extra-size">14</span></div>
+      <div class="control-row"><label>Largura</label><input type="range" min="100" max="800" value="320" id="ctrl-top1-extra-width" oninput="updateControl()"><span class="val" id="val-top1-extra-width">320</span></div>
+      <div class="control-row"><label>X</label><input type="range" min="-600" max="600" value="0" id="ctrl-top1-extra-x" oninput="updateControl()"><span class="val" id="val-top1-extra-x">0</span></div>
+      <div class="control-row"><label>Y</label><input type="range" min="-400" max="400" value="0" id="ctrl-top1-extra-y" oninput="updateControl()"><span class="val" id="val-top1-extra-y">0</span></div>
+      <div class="control-row"><label>Cor</label><input type="color" id="ctrl-top1-extra-color" value="#00f0ff" oninput="updateControl()"></div>
+      <div class="control-row"><label>Fundo</label><label class="toggle-switch"><input type="checkbox" id="ctrl-top1-extra-bg" onchange="updateControl()"><span class="toggle-slider"></span></label></div>
+      <div class="control-row"><label>Cor fundo</label><input type="color" id="ctrl-top1-extra-bg-color" value="#0f0f17" oninput="updateControl()"></div>
+      <div class="control-row"><label>Opacidade</label><input type="range" min="0" max="100" value="75" id="ctrl-top1-extra-bg-opacity" oninput="updateControl()"><span class="val" id="val-top1-extra-bg-opacity">75</span></div>
       <div class="control-row"><label>Padding</label><input type="range" min="0" max="30" value="8" id="ctrl-top1-extra-padding" oninput="updateControl()"><span class="val" id="val-top1-extra-padding">8</span></div>
       <div class="control-row"><label>Raio</label><input type="range" min="0" max="30" value="10" id="ctrl-top1-extra-radius" oninput="updateControl()"><span class="val" id="val-top1-extra-radius">10</span></div>
     `;
 
-    const top3Section = Array.from(sidebar.querySelectorAll('.sidebar-section')).find((sec) => sec.querySelector('h3')?.textContent?.includes('TOP 3'));
-    if (top3Section) top3Section.after(section);
-    else sidebar.appendChild(section);
+    const top3 = Array.from(sidebar.querySelectorAll('.sidebar-section')).find((sec) => sec.querySelector('h3')?.textContent?.includes('TOP 3'));
+    if (top3) top3.after(box);
+    else sidebar.appendChild(box);
 
-    const extraText = document.getElementById('ctrl-top1-extra-text');
-    if (extraText) {
-      extraText.addEventListener('input', () => updatePatchedTextControl('top1-extra-text', extraText.value));
+    const textInput = document.getElementById('ctrl-top1-extra-text');
+    if (textInput) {
+      textInput.addEventListener('input', (e) => saveControlValue('top1-extra-text', e.target.value));
     }
 
-    syncPatchedControls();
+    syncControlsFromState();
   }
 
-  function installTop1AssetPicker() {
+  function installTop1Picker() {
     const container = document.getElementById('picker-container');
-    if (!container || document.getElementById('picker-top1-exclusive') || typeof assets === 'undefined' || typeof state === 'undefined') return;
-
-    const list = (assets || []).filter((a) => a.type === 'barra');
-    const selected = state?.assetRefs?.top1Barra || null;
-    const items = [
-      `<div class="picker-item clear-item${selected ? '' : ' selected'}" onclick="setSlotAsset('top1Barra',null)">∅ NENHUMA</div>`,
-      ...list.map((a) => `
-        <div class="picker-item${selected === a.id ? ' selected' : ''}" onclick="setSlotAsset('top1Barra','${a.id}')">
-          <img src="${a.data}">
-          <small>${escapeHtml(a.name)}</small>
-        </div>
-      `)
-    ].join('');
-
-    const section = document.createElement('div');
-    section.id = 'picker-top1-exclusive';
-    section.className = 'picker-section slmm-top1-picker';
-    section.innerHTML = `
-      <h4 style="color:var(--cyan)">BARRA EXCLUSIVA TOP 1</h4>
-      <p class="slmm-top1-help">Se selecionar uma barra aqui, o 1º lugar usa esse visual só dele. Você ainda pode mover a linha inteira pelos controles do TOP 1 especial.</p>
-      <div class="picker-grid">${items}</div>
-    `;
-
-    container.prepend(section);
+    if (!container || document.getElementById('slmm-top1-picker') || typeof assets === 'undefined') return;
+    const selected = state?.assetRefs?.[BAR_SLOT] || null;
+    const list = assets.filter((a) => a.type === 'barra');
+    const items = ['<div class="picker-item clear-item' + (selected ? '' : ' selected') + '" onclick="setSlotAsset(\'' + BAR_SLOT + '\',null)">∅ NENHUMA</div>']
+      .concat(list.map((a) => '<div class="picker-item' + (selected === a.id ? ' selected' : '') + '" onclick="setSlotAsset(\'' + BAR_SLOT + '\',\'' + a.id + '\')"><img src="' + a.data + '"><small>' + escapeHtml(a.name) + '</small></div>'))
+      .join('');
+    const sec = document.createElement('div');
+    sec.id = 'slmm-top1-picker';
+    sec.className = 'picker-section slmm-top1-picker';
+    sec.innerHTML = '<h4 style="color:var(--cyan)">BARRA EXCLUSIVA TOP 1</h4><p class="slmm-top1-help">Escolha uma barra só para o TOP 1 e depois ajuste tudo nos controles.</p><div class="picker-grid">' + items + '</div>';
+    container.prepend(sec);
   }
 
-  function applyTop1Overrides() {
-    const active = !!getCtrlValue('top1-custom');
-    if (!active) return;
+  function ensureWrap(row) {
+    const nameArea = row.querySelector('.r-name-area');
+    const nameEl = row.querySelector('.r-name');
+    if (!nameArea || !nameEl) return { wrap: null, nameEl: null };
+    let wrap = row.querySelector('.r-name-wrap');
+    if (!wrap) {
+      wrap = document.createElement('div');
+      wrap.className = 'r-name-wrap';
+      if (nameEl.parentNode === nameArea) {
+        nameArea.appendChild(wrap);
+        wrap.appendChild(nameEl);
+      }
+    }
+    return { wrap, nameEl };
+  }
 
-    const rowHeight = num(getCtrlValue('top1-row-h'), TOP1_DEFAULTS['top1-row-h']);
-    const rowX = num(getCtrlValue('top1-row-x'), 0);
-    const rowY = num(getCtrlValue('top1-row-y'), 0);
-    const rowGap = num(getCtrlValue('top1-row-gap'), 0);
+  function clearExtraEls(row) {
+    row.querySelectorAll('.r-extra-info,.top1-extra-below-bar,.top1-extra-free').forEach((el) => el.remove());
+  }
 
-    const rankShow = !!getCtrlValue('top1-rank-show');
-    const rankSize = num(getCtrlValue('top1-rank-size'), TOP1_DEFAULTS['top1-rank-size']);
-    const rankX = num(getCtrlValue('top1-rank-x'), 0);
-    const rankY = num(getCtrlValue('top1-rank-y'), 0);
-    const rankColor = getCtrlValue('top1-rank-color') || '#ffffff';
+  function applyTop1Styles() {
+    const row = document.querySelector('#col-left .row[data-rank="1"]');
+    if (!row) return;
 
-    const logoScale = num(getCtrlValue('top1-logo-size'), TOP1_DEFAULTS['top1-logo-size']) / 100;
-    const logoX = num(getCtrlValue('top1-logo-x'), 0);
-    const logoY = num(getCtrlValue('top1-logo-y'), 0);
-    const logoRot = num(getCtrlValue('top1-logo-rot'), 0);
-    const logoOpacity = num(getCtrlValue('top1-logo-opacity'), 100) / 100;
+    row.classList.remove('top1-custom');
+    row.style.transform = '';
+    row.style.marginBottom = '';
 
-    const flagShow = !!getCtrlValue('top1-flag-show');
-    const flagSize = num(getCtrlValue('top1-flag-size'), TOP1_DEFAULTS['top1-flag-size']);
-    const flagX = num(getCtrlValue('top1-flag-x'), 0);
-    const flagY = num(getCtrlValue('top1-flag-y'), 0);
-    const flagOpacity = num(getCtrlValue('top1-flag-opacity'), 100) / 100;
+    if (!getControlValue('top1-custom')) return;
 
-    const nameSize = num(getCtrlValue('top1-name-size'), TOP1_DEFAULTS['top1-name-size']);
-    const nameX = num(getCtrlValue('top1-name-x'), 0);
-    const nameY = num(getCtrlValue('top1-name-y'), 0);
-    const nameColor = getCtrlValue('top1-name-color') || '#ffe38a';
-    const nameWidth = num(getCtrlValue('top1-name-width'), TOP1_DEFAULTS['top1-name-width']);
+    row.classList.add('top1-custom');
+    row.style.height = toInt(getControlValue('top1-row-h'), 92) + 'px';
+    row.style.transform = 'translate(' + toInt(getControlValue('top1-row-x'), 0) + 'px,' + toInt(getControlValue('top1-row-y'), 0) + 'px)';
+    row.style.marginBottom = getControlValue('top1-extra-mode') === 'below-bar' ? toInt(getControlValue('top1-row-gap'), 40) + 'px' : '0px';
 
-    const extraMode = getCtrlValue('top1-extra-mode') || 'below-bar';
-    const extraSize = num(getCtrlValue('top1-extra-size'), TOP1_DEFAULTS['top1-extra-size']);
-    const extraX = num(getCtrlValue('top1-extra-x'), 0);
-    const extraY = num(getCtrlValue('top1-extra-y'), 0);
-    const extraColor = getCtrlValue('top1-extra-color') || '#00f0ff';
-    const extraWidth = num(getCtrlValue('top1-extra-width'), TOP1_DEFAULTS['top1-extra-width']);
-    const extraBg = !!getCtrlValue('top1-extra-bg');
-    const extraBgColor = getCtrlValue('top1-extra-bg-color') || '#0f0f17';
-    const extraBgOpacity = num(getCtrlValue('top1-extra-bg-opacity'), TOP1_DEFAULTS['top1-extra-bg-opacity']);
-    const extraPadding = num(getCtrlValue('top1-extra-padding'), TOP1_DEFAULTS['top1-extra-padding']);
-    const extraRadius = num(getCtrlValue('top1-extra-radius'), TOP1_DEFAULTS['top1-extra-radius']);
-    const extraBackground = extraBg ? alphaHex(extraBgColor, extraBgOpacity) : 'transparent';
+    if (state?.assetRefs?.[BAR_SLOT]) {
+      const top1Bar = getAssetData(state.assetRefs[BAR_SLOT]);
+      if (top1Bar) {
+        row.style.backgroundImage = "url('" + top1Bar + "')";
+        row.style.backgroundSize = '100% 100%';
+      }
+    }
 
-    document.querySelectorAll('.row.top1-custom').forEach((row) => {
-      row.style.height = rowHeight + 'px';
-      row.style.overflow = 'visible';
-      row.style.transform = `translate(${rowX}px, ${rowY}px)`;
-      row.style.marginBottom = extraMode === 'below-bar' ? rowGap + 'px' : '0px';
-    });
+    const rank = row.querySelector('.box-rank');
+    if (rank) {
+      rank.style.display = getControlValue('top1-rank-show') ? 'flex' : 'none';
+      rank.style.fontSize = toInt(getControlValue('top1-rank-size'), 32) + 'px';
+      rank.style.transform = 'translate(' + toInt(getControlValue('top1-rank-x'), 0) + 'px,' + toInt(getControlValue('top1-rank-y'), 0) + 'px)';
+      rank.style.color = getControlValue('top1-rank-color') || '#ffffff';
+    }
 
-    document.querySelectorAll('.row.top1-custom .box-rank').forEach((el) => {
-      el.style.display = rankShow ? 'flex' : 'none';
-      el.style.fontSize = rankSize + 'px';
-      el.style.transform = `translate(${rankX}px, ${rankY}px)`;
-      el.style.color = rankColor;
-    });
+    const logo = row.querySelector('.r-logo');
+    if (logo) {
+      logo.style.transform = 'translate(' + toInt(getControlValue('top1-logo-x'), 0) + 'px,' + toInt(getControlValue('top1-logo-y'), 0) + 'px) scale(' + (toInt(getControlValue('top1-logo-size'), 210) / 100) + ') rotate(' + toInt(getControlValue('top1-logo-rot'), 0) + 'deg)';
+      logo.style.transformOrigin = 'center center';
+      logo.style.maxWidth = 'none';
+      logo.style.maxHeight = 'none';
+      logo.style.opacity = String(toInt(getControlValue('top1-logo-opacity'), 100) / 100);
+    }
 
-    document.querySelectorAll('.row.top1-custom .r-logo').forEach((el) => {
-      el.style.transform = `translate(${logoX}px, ${logoY}px) scale(${logoScale}) rotate(${logoRot}deg)`;
-      el.style.transformOrigin = 'center center';
-      el.style.maxWidth = 'none';
-      el.style.maxHeight = 'none';
-      el.style.opacity = logoOpacity;
-    });
+    const flag = row.querySelector('.r-flag');
+    if (flag) {
+      const size = toInt(getControlValue('top1-flag-size'), 35);
+      flag.style.display = getControlValue('top1-flag-show') && size > 0 ? '' : 'none';
+      flag.style.width = size + 'px';
+      flag.style.height = Math.max(0, Math.round(size * 0.68)) + 'px';
+      flag.style.transform = 'translate(' + toInt(getControlValue('top1-flag-x'), 0) + 'px,' + toInt(getControlValue('top1-flag-y'), 0) + 'px)';
+      flag.style.opacity = String(toInt(getControlValue('top1-flag-opacity'), 100) / 100);
+    }
 
-    document.querySelectorAll('.row.top1-custom .r-flag').forEach((el) => {
-      el.style.display = flagShow && flagSize > 0 ? '' : 'none';
-      el.style.width = flagSize + 'px';
-      el.style.height = Math.max(0, Math.round(flagSize * 0.68)) + 'px';
-      el.style.transform = `translate(${flagX}px, ${flagY}px)`;
-      el.style.opacity = flagOpacity;
-    });
+    const { wrap, nameEl } = ensureWrap(row);
+    if (nameEl) {
+      nameEl.style.fontSize = toInt(getControlValue('top1-name-size'), 36) + 'px';
+      nameEl.style.transform = 'translate(' + toInt(getControlValue('top1-name-x'), 0) + 'px,' + toInt(getControlValue('top1-name-y'), 0) + 'px)';
+      nameEl.style.maxWidth = toInt(getControlValue('top1-name-width'), 520) + 'px';
+      nameEl.style.color = getControlValue('top1-name-color') || '#ffe38a';
+      nameEl.style.lineHeight = '1';
+    }
+    if (wrap) wrap.style.maxWidth = toInt(getControlValue('top1-name-width'), 520) + 'px';
 
-    document.querySelectorAll('.row.top1-custom .r-name').forEach((el) => {
-      el.style.fontSize = nameSize + 'px';
-      el.style.transform = `translate(${nameX}px, ${nameY}px)`;
+    clearExtraEls(row);
+
+    const text = String(getControlValue('top1-extra-text') || '').trim();
+    if (!text) return;
+
+    let extraEl = null;
+    const mode = getControlValue('top1-extra-mode') || 'below-bar';
+    if (mode === 'below-name' && wrap) {
+      extraEl = document.createElement('div');
+      extraEl.className = 'r-extra-info';
+      extraEl.textContent = text;
+      wrap.appendChild(extraEl);
+    } else if (mode === 'below-bar') {
+      extraEl = document.createElement('div');
+      extraEl.className = 'top1-extra-below-bar';
+      extraEl.textContent = text;
+      row.appendChild(extraEl);
+    } else {
+      extraEl = document.createElement('div');
+      extraEl.className = 'top1-extra-free';
+      extraEl.textContent = text;
+      row.appendChild(extraEl);
+    }
+
+    if (!extraEl) return;
+
+    extraEl.style.fontSize = toInt(getControlValue('top1-extra-size'), 14) + 'px';
+    extraEl.style.maxWidth = toInt(getControlValue('top1-extra-width'), 320) + 'px';
+    extraEl.style.color = getControlValue('top1-extra-color') || '#00f0ff';
+    extraEl.style.background = getControlValue('top1-extra-bg') ? colorWithAlpha(getControlValue('top1-extra-bg-color'), getControlValue('top1-extra-bg-opacity')) : 'transparent';
+    extraEl.style.padding = getControlValue('top1-extra-bg') ? toInt(getControlValue('top1-extra-padding'), 8) + 'px' : '0px';
+    extraEl.style.borderRadius = toInt(getControlValue('top1-extra-radius'), 10) + 'px';
+    extraEl.style.transform = 'translate(' + toInt(getControlValue('top1-extra-x'), 0) + 'px,' + toInt(getControlValue('top1-extra-y'), 0) + 'px)';
+  }
+
+  function patchPasswords() {
+    window.checkGlobalPass = function () { document.getElementById('global-lock-screen')?.classList.add('hidden'); };
+    window.openTableWithPassCheck = function (id) { doOpenTable(id, true); };
+    window.checkTablePass = function () { closeModal('table-pass-modal'); };
+    window.unlockEdit = function () {
+      if (typeof state !== 'undefined') state.editUnlocked = true;
+      document.getElementById('edit-lock-bar')?.style.setProperty('display', 'none', 'important');
+      if (typeof setEditorReadonly === 'function') setEditorReadonly(false);
+    };
+    window.openChangeTablePass = function () { alert('As proteções por senha foram removidas nesta versão.'); };
+    window.confirmChangePass = function () {
+      if (typeof state !== 'undefined') state.tablePass = null;
+      if (document.getElementById('chg-pass-status')) showStatus('chg-pass-status', 'Proteção por senha removida.', 'success');
+      setTimeout(() => closeModal('change-pass-modal'), 300);
+      if (typeof scheduleSave === 'function') scheduleSave();
+    };
+    const originalOpen = window.doOpenTable;
+    window.doOpenTable = function (id) {
+      originalOpen(id, true);
+      if (typeof state !== 'undefined') {
+        state.tablePass = null;
+        state.editUnlocked = true;
+      }
+      if (typeof currentTable !== 'undefined' && currentTable?.data) currentTable.data.tablePass = null;
+      document.getElementById('edit-lock-bar')?.style.setProperty('display', 'none', 'important');
+      if (typeof setEditorReadonly === 'function') setEditorReadonly(false);
+      installTop1Controls();
+      syncControlsFromState();
+      installTop1Picker();
+      if (typeof gerarTabela === 'function') gerarTabela();
+    };
+    const originalSave = window.saveCurrentTable;
+    window.saveCurrentTable = async function () {
+      if (typeof state !== 'undefined') state.tablePass = null;
+      if (typeof currentTable !== 'undefined' && currentTable?.data) currentTable.data.tablePass = null;
+      ensureControlsState();
+      return originalSave.apply(this, arguments);
+    };
+  }
+
+  function patchRenderAssetPicker() {
+    const original = window.renderAssetPicker;
+    window.renderAssetPicker = function () {
+      original.apply(this, arguments);
+      installTop1Picker();
+    };
+  }
+
+  function patchApplyControls() {
+    const original = window.applyControls;
+    window.applyControls = function () {
+      original.apply(this, arguments);
+      applyTop1Styles();
+    };
+  }
+
+  function patchGerarTabela() {
+    const original = window.gerarTabela;
+    window.gerarTabela = function () {
+      original.apply(this, arguments);
+      applyTop1Styles();
+    };
+  }
+
+  async function cleanupPasswords() {
+    if (typeof tables === 'undefined' || !Array.isArray(tables)) return;
+    let dirty = false;
+    for (const t of tables) {
+      if (t?.data?.tablePass) {
+        t.data.tablePass = null;
+        t.updatedAt = Date.now();
+        dirty = true;
+        try { await dbPut(ST_TABLES, t); } catch (e) { console.warn('Erro limpando senha', e); }
+      }
+    }
+    if (dirty) {
+      try {
+        tables = await dbAll(ST_TABLES);
+        if (!document.body.classList.contains('editor-mode')) renderHome();
+      } catch (e) {}
+    }
+  }
+
+  function install() {
+    injectStyles();
+    hidePasswordUI();
+    installBadge();
+    installTop1Controls();
+    syncControlsFromState();
+    patchPasswords();
+    patchRenderAssetPicker();
+    patchApplyControls();
+    patchGerarTabela();
+    cleanupPasswords();
+    console.info('[SLMM upgrade] patch ' + PATCH_VERSION + ' ativo');
+  }
+
+  onReady(() => {
+    const wait = () => {
+      if (typeof renderHome === 'function' && typeof gerarTabela === 'function' && typeof updateControl === 'function') install();
+      else setTimeout(wait, 120);
+    };
+    wait();
+  });
+})();
 
 </script>
 </body>
