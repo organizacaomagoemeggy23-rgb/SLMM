@@ -1348,7 +1348,47 @@ window.addEventListener('load',init);
 
 <script>
 (() => {
-  const PATCH_VERSION = '1.4.0';
+  const PATCH_VERSION = '1.5.0';
+
+  const TOP1_DEFAULTS = {
+    'top1-custom': false,
+    'top1-row-h': 92,
+    'top1-row-x': 0,
+    'top1-row-y': 0,
+    'top1-row-gap': 40,
+    'top1-rank-show': true,
+    'top1-rank-size': 32,
+    'top1-rank-x': 0,
+    'top1-rank-y': 0,
+    'top1-rank-color': '#ffffff',
+    'top1-logo-size': 210,
+    'top1-logo-x': 0,
+    'top1-logo-y': 0,
+    'top1-logo-rot': 0,
+    'top1-logo-opacity': 100,
+    'top1-flag-show': true,
+    'top1-flag-size': 35,
+    'top1-flag-x': 0,
+    'top1-flag-y': 0,
+    'top1-flag-opacity': 100,
+    'top1-name-size': 36,
+    'top1-name-x': 0,
+    'top1-name-y': 0,
+    'top1-name-color': '#ffe38a',
+    'top1-name-width': 520,
+    'top1-extra-text': '',
+    'top1-extra-mode': 'below-bar',
+    'top1-extra-size': 14,
+    'top1-extra-x': 0,
+    'top1-extra-y': 0,
+    'top1-extra-color': '#00f0ff',
+    'top1-extra-bg': false,
+    'top1-extra-bg-color': '#0f0f17',
+    'top1-extra-bg-opacity': 75,
+    'top1-extra-padding': 8,
+    'top1-extra-radius': 10,
+    'top1-extra-width': 320
+  };
 
   const onReady = (fn) => {
     if (document.readyState === 'loading') {
@@ -1362,6 +1402,53 @@ window.addEventListener('load',init);
     const parsed = parseInt(value, 10);
     return Number.isFinite(parsed) ? parsed : fallback;
   };
+
+  const alphaHex = (hex, opacityPercent) => {
+    const clean = String(hex || '').replace('#', '').trim();
+    const full = clean.length === 3 ? clean.split('').map((c) => c + c).join('') : clean;
+    if (!/^[0-9a-fA-F]{6}$/.test(full)) return 'rgba(15,15,23,.75)';
+    const alpha = Math.max(0, Math.min(255, Math.round((num(opacityPercent, 75) / 100) * 255)));
+    return `#${full}${alpha.toString(16).padStart(2, '0')}`;
+  };
+
+  function getCtrlValue(key) {
+    const el = document.getElementById('ctrl-' + key);
+    if (!el) return TOP1_DEFAULTS[key];
+    if (el.type === 'checkbox') return !!el.checked;
+    return el.value;
+  }
+
+  function setCtrlValue(key, value) {
+    const el = document.getElementById('ctrl-' + key);
+    if (!el) return;
+    if (el.type === 'checkbox') el.checked = !!value;
+    else el.value = value;
+    const valEl = document.getElementById('val-' + key);
+    if (valEl) valEl.textContent = String(value);
+  }
+
+  function ensureTop1ControlsState() {
+    if (typeof state === 'undefined') return;
+    state.controls = state.controls || {};
+    Object.entries(TOP1_DEFAULTS).forEach(([key, value]) => {
+      if (state.controls[key] === undefined) state.controls[key] = value;
+    });
+  }
+
+  function syncPatchedControls() {
+    ensureTop1ControlsState();
+    Object.keys(TOP1_DEFAULTS).forEach((key) => {
+      setCtrlValue(key, state?.controls?.[key] ?? TOP1_DEFAULTS[key]);
+    });
+  }
+
+  function updatePatchedTextControl(key, value) {
+    if (typeof state === 'undefined') return;
+    state.controls = state.controls || {};
+    state.controls[key] = value;
+    if (typeof scheduleSave === 'function') scheduleSave();
+    if (typeof gerarTabela === 'function') gerarTabela();
+  }
 
   function injectStyles() {
     if (document.getElementById('slmm-upgrade-style')) return;
@@ -1515,6 +1602,7 @@ window.addEventListener('load',init);
         align-items:flex-start;
         gap:2px;
         min-width:0;
+        max-width:100%;
       }
 
       .r-extra-info {
@@ -1529,22 +1617,43 @@ window.addEventListener('load',init);
         white-space:nowrap;
         overflow:hidden;
         text-overflow:ellipsis;
-        max-width:520px;
       }
 
       .row.top1-custom {
         overflow: visible;
-        z-index: 25;
+        z-index: 40;
       }
 
       .row.top1-custom .box-logo,
       .row.top1-custom .box-info,
-      .row.top1-custom .r-name-area {
+      .row.top1-custom .r-name-area,
+      .row.top1-custom .r-name-wrap {
         overflow: visible;
       }
 
       .row.top1-custom .r-logo {
         filter: drop-shadow(0 14px 20px rgba(0,0,0,.42));
+      }
+
+      .top1-extra-below-bar,
+      .top1-extra-free {
+        position:absolute;
+        left:0;
+        top:0;
+        z-index:45;
+        font-family:var(--mono);
+        letter-spacing:1px;
+        text-transform:uppercase;
+        white-space:nowrap;
+      }
+
+      .top1-extra-below-bar {
+        top:calc(100% + 8px);
+      }
+
+      .top1-extra-free {
+        top:50%;
+        left:50%;
       }
 
       .slmm-top1-section {
@@ -1591,25 +1700,26 @@ window.addEventListener('load',init);
     const changePassBtn = document.querySelector('[onclick="openChangeTablePass()"]');
     if (changePassBtn) changePassBtn.style.display = 'none';
 
-    const passAreas = document.querySelectorAll('.table-pass-modal-area');
-    passAreas.forEach((el) => el.style.setProperty('display', 'none', 'important'));
+    document.querySelectorAll('.table-pass-modal-area').forEach((el) => {
+      el.style.setProperty('display', 'none', 'important');
+    });
   }
 
   function bumpVisualLabels() {
-    document.title = 'SLMM System 1.4';
+    document.title = 'SLMM System 1.5';
 
     const eyebrow = document.querySelector('.home-header .brand .eyebrow');
-    if (eyebrow) eyebrow.innerHTML = '<span class="live-dot"></span>SLMM CONTROL ROOM v1.4';
+    if (eyebrow) eyebrow.innerHTML = '<span class="live-dot"></span>SLMM CONTROL ROOM v1.5';
 
     const tagline = document.querySelector('.home-header .tagline');
-    if (tagline) tagline.textContent = 'Geração de tabelas oficiais — visual refinado, TOP 1 independente e fluxo sem senha.';
+    if (tagline) tagline.textContent = 'Geração de tabelas oficiais — visual refinado, TOP 1 com liberdade máxima e fluxo sem senha.';
 
     const homeNav = document.querySelector('.home-nav');
     if (homeNav && !document.getElementById('slmm-upgrade-badge')) {
       const badge = document.createElement('div');
       badge.id = 'slmm-upgrade-badge';
       badge.className = 'slmm-upgrade-badge';
-      badge.innerHTML = '<strong>Patch ativo</strong> sem senha + top 1 independente';
+      badge.innerHTML = '<strong>Patch ativo</strong> top 1 com liberdade máxima';
       homeNav.prepend(badge);
     }
   }
@@ -1622,33 +1732,73 @@ window.addEventListener('load',init);
     section.id = 'top1-independent-controls';
     section.className = 'sidebar-section slmm-top1-section';
     section.innerHTML = `
-      <h3 style="color:var(--cyan)">TOP 1 INDEPENDENTE</h3>
-      <p class="slmm-top1-help">Você pode dar um tratamento separado só para o 1º lugar: barra própria, logo maior, nome maior e uma informação extra exclusiva.</p>
+      <h3 style="color:var(--cyan)">TOP 1 ESPECIAL</h3>
+      <p class="slmm-top1-help">Aqui você consegue deixar o TOP 1 praticamente livre: mover barra inteira, logo, nome, bandeira, rank e texto extra como quiser.</p>
 
       <div class="control-row">
-        <label>Ativar TOP 1 custom</label>
+        <label>Ativar TOP 1 especial</label>
         <label class="toggle-switch">
           <input type="checkbox" id="ctrl-top1-custom" onchange="updateControl()">
           <span class="toggle-slider"></span>
         </label>
       </div>
 
-      <div class="control-row"><label>Altura TOP 1</label><input type="range" min="60" max="200" value="86" id="ctrl-top1-row-h" oninput="updateControl()"><span class="val" id="val-top1-row-h">86</span></div>
-      <div class="control-row"><label>Logo TOP 1 %</label><input type="range" min="60" max="800" value="190" id="ctrl-top1-logo-size" oninput="updateControl()"><span class="val" id="val-top1-logo-size">190</span></div>
-      <div class="control-row"><label>Logo TOP 1 X</label><input type="range" min="-160" max="160" value="0" id="ctrl-top1-logo-x" oninput="updateControl()"><span class="val" id="val-top1-logo-x">0</span></div>
-      <div class="control-row"><label>Logo TOP 1 Y</label><input type="range" min="-120" max="120" value="0" id="ctrl-top1-logo-y" oninput="updateControl()"><span class="val" id="val-top1-logo-y">0</span></div>
-      <div class="control-row"><label>Nome TOP 1</label><input type="range" min="16" max="90" value="34" id="ctrl-top1-name-size" oninput="updateControl()"><span class="val" id="val-top1-name-size">34</span></div>
-      <div class="control-row"><label>Nome TOP 1 X</label><input type="range" min="-160" max="160" value="0" id="ctrl-top1-name-x" oninput="updateControl()"><span class="val" id="val-top1-name-x">0</span></div>
-      <div class="control-row"><label>Nome TOP 1 Y</label><input type="range" min="-120" max="120" value="0" id="ctrl-top1-name-y" oninput="updateControl()"><span class="val" id="val-top1-name-y">0</span></div>
-      <div class="control-row"><label>Cor Nome TOP 1</label><input type="color" id="ctrl-top1-name-color" value="#ffe38a" oninput="updateControl()"></div>
+      <h3 style="color:var(--cyan)">BARRA / LINHA</h3>
+      <div class="control-row"><label>Altura TOP 1</label><input type="range" min="60" max="220" value="92" id="ctrl-top1-row-h" oninput="updateControl()"><span class="val" id="val-top1-row-h">92</span></div>
+      <div class="control-row"><label>Barra X</label><input type="range" min="-400" max="400" value="0" id="ctrl-top1-row-x" oninput="updateControl()"><span class="val" id="val-top1-row-x">0</span></div>
+      <div class="control-row"><label>Barra Y</label><input type="range" min="-250" max="250" value="0" id="ctrl-top1-row-y" oninput="updateControl()"><span class="val" id="val-top1-row-y">0</span></div>
+      <div class="control-row"><label>Espaço abaixo</label><input type="range" min="0" max="180" value="40" id="ctrl-top1-row-gap" oninput="updateControl()"><span class="val" id="val-top1-row-gap">40</span></div>
+
+      <h3 style="color:var(--cyan)">RANK</h3>
+      <div class="control-row"><label>Mostrar rank</label><label class="toggle-switch"><input type="checkbox" id="ctrl-top1-rank-show" checked onchange="updateControl()"><span class="toggle-slider"></span></label></div>
+      <div class="control-row"><label>Rank tamanho</label><input type="range" min="16" max="90" value="32" id="ctrl-top1-rank-size" oninput="updateControl()"><span class="val" id="val-top1-rank-size">32</span></div>
+      <div class="control-row"><label>Rank X</label><input type="range" min="-250" max="250" value="0" id="ctrl-top1-rank-x" oninput="updateControl()"><span class="val" id="val-top1-rank-x">0</span></div>
+      <div class="control-row"><label>Rank Y</label><input type="range" min="-250" max="250" value="0" id="ctrl-top1-rank-y" oninput="updateControl()"><span class="val" id="val-top1-rank-y">0</span></div>
+      <div class="control-row"><label>Cor do rank</label><input type="color" id="ctrl-top1-rank-color" value="#ffffff" oninput="updateControl()"></div>
+
+      <h3 style="color:var(--cyan)">LOGO</h3>
+      <div class="control-row"><label>Logo %</label><input type="range" min="60" max="1500" value="210" id="ctrl-top1-logo-size" oninput="updateControl()"><span class="val" id="val-top1-logo-size">210</span></div>
+      <div class="control-row"><label>Logo X</label><input type="range" min="-500" max="500" value="0" id="ctrl-top1-logo-x" oninput="updateControl()"><span class="val" id="val-top1-logo-x">0</span></div>
+      <div class="control-row"><label>Logo Y</label><input type="range" min="-500" max="500" value="0" id="ctrl-top1-logo-y" oninput="updateControl()"><span class="val" id="val-top1-logo-y">0</span></div>
+      <div class="control-row"><label>Logo rotação</label><input type="range" min="-180" max="180" value="0" id="ctrl-top1-logo-rot" oninput="updateControl()"><span class="val" id="val-top1-logo-rot">0</span></div>
+      <div class="control-row"><label>Logo opacidade</label><input type="range" min="0" max="100" value="100" id="ctrl-top1-logo-opacity" oninput="updateControl()"><span class="val" id="val-top1-logo-opacity">100</span></div>
+
+      <h3 style="color:var(--cyan)">BANDEIRA</h3>
+      <div class="control-row"><label>Mostrar só no TOP 1</label><label class="toggle-switch"><input type="checkbox" id="ctrl-top1-flag-show" checked onchange="updateControl()"><span class="toggle-slider"></span></label></div>
+      <div class="control-row"><label>Bandeira tamanho</label><input type="range" min="0" max="200" value="35" id="ctrl-top1-flag-size" oninput="updateControl()"><span class="val" id="val-top1-flag-size">35</span></div>
+      <div class="control-row"><label>Bandeira X</label><input type="range" min="-300" max="300" value="0" id="ctrl-top1-flag-x" oninput="updateControl()"><span class="val" id="val-top1-flag-x">0</span></div>
+      <div class="control-row"><label>Bandeira Y</label><input type="range" min="-300" max="300" value="0" id="ctrl-top1-flag-y" oninput="updateControl()"><span class="val" id="val-top1-flag-y">0</span></div>
+      <div class="control-row"><label>Bandeira opacidade</label><input type="range" min="0" max="100" value="100" id="ctrl-top1-flag-opacity" oninput="updateControl()"><span class="val" id="val-top1-flag-opacity">100</span></div>
+
+      <h3 style="color:var(--cyan)">NOME</h3>
+      <div class="control-row"><label>Nome tamanho</label><input type="range" min="16" max="120" value="36" id="ctrl-top1-name-size" oninput="updateControl()"><span class="val" id="val-top1-name-size">36</span></div>
+      <div class="control-row"><label>Nome X</label><input type="range" min="-400" max="400" value="0" id="ctrl-top1-name-x" oninput="updateControl()"><span class="val" id="val-top1-name-x">0</span></div>
+      <div class="control-row"><label>Nome Y</label><input type="range" min="-300" max="300" value="0" id="ctrl-top1-name-y" oninput="updateControl()"><span class="val" id="val-top1-name-y">0</span></div>
+      <div class="control-row"><label>Nome largura</label><input type="range" min="120" max="900" value="520" id="ctrl-top1-name-width" oninput="updateControl()"><span class="val" id="val-top1-name-width">520</span></div>
+      <div class="control-row"><label>Cor do nome</label><input type="color" id="ctrl-top1-name-color" value="#ffe38a" oninput="updateControl()"></div>
+
+      <h3 style="color:var(--cyan)">TEXTO EXTRA / HELDER</h3>
       <div class="control-row" style="flex-direction:column;align-items:flex-start;gap:8px">
-        <label style="width:100%">Info extra TOP 1</label>
-        <input type="text" id="ctrl-top1-extra-text" class="slmm-top1-text" placeholder="Ex: MVP / LÍDER / CAMPEÃO DO DIA">
+        <label style="width:100%">Texto</label>
+        <input type="text" id="ctrl-top1-extra-text" class="slmm-top1-text" placeholder="Ex: HELDER / MVP / CAMPEÃO">
       </div>
-      <div class="control-row"><label>Info extra tam</label><input type="range" min="10" max="42" value="13" id="ctrl-top1-extra-size" oninput="updateControl()"><span class="val" id="val-top1-extra-size">13</span></div>
-      <div class="control-row"><label>Info extra X</label><input type="range" min="-160" max="160" value="0" id="ctrl-top1-extra-x" oninput="updateControl()"><span class="val" id="val-top1-extra-x">0</span></div>
-      <div class="control-row"><label>Info extra Y</label><input type="range" min="-120" max="120" value="0" id="ctrl-top1-extra-y" oninput="updateControl()"><span class="val" id="val-top1-extra-y">0</span></div>
-      <div class="control-row"><label>Cor info extra</label><input type="color" id="ctrl-top1-extra-color" value="#00f0ff" oninput="updateControl()"></div>
+      <div class="control-row"><label>Modo</label>
+        <select id="ctrl-top1-extra-mode" onchange="updateControl()" style="width:140px">
+          <option value="below-bar">Embaixo da barra</option>
+          <option value="below-name">Embaixo do nome</option>
+          <option value="free">Livre</option>
+        </select>
+      </div>
+      <div class="control-row"><label>Texto tamanho</label><input type="range" min="10" max="70" value="14" id="ctrl-top1-extra-size" oninput="updateControl()"><span class="val" id="val-top1-extra-size">14</span></div>
+      <div class="control-row"><label>Texto largura</label><input type="range" min="100" max="800" value="320" id="ctrl-top1-extra-width" oninput="updateControl()"><span class="val" id="val-top1-extra-width">320</span></div>
+      <div class="control-row"><label>Texto X</label><input type="range" min="-600" max="600" value="0" id="ctrl-top1-extra-x" oninput="updateControl()"><span class="val" id="val-top1-extra-x">0</span></div>
+      <div class="control-row"><label>Texto Y</label><input type="range" min="-400" max="400" value="0" id="ctrl-top1-extra-y" oninput="updateControl()"><span class="val" id="val-top1-extra-y">0</span></div>
+      <div class="control-row"><label>Cor do texto</label><input type="color" id="ctrl-top1-extra-color" value="#00f0ff" oninput="updateControl()"></div>
+      <div class="control-row"><label>Fundo no texto</label><label class="toggle-switch"><input type="checkbox" id="ctrl-top1-extra-bg" onchange="updateControl()"><span class="toggle-slider"></span></label></div>
+      <div class="control-row"><label>Cor do fundo</label><input type="color" id="ctrl-top1-extra-bg-color" value="#0f0f17" oninput="updateControl()"></div>
+      <div class="control-row"><label>Fundo opacidade</label><input type="range" min="0" max="100" value="75" id="ctrl-top1-extra-bg-opacity" oninput="updateControl()"><span class="val" id="val-top1-extra-bg-opacity">75</span></div>
+      <div class="control-row"><label>Padding</label><input type="range" min="0" max="30" value="8" id="ctrl-top1-extra-padding" oninput="updateControl()"><span class="val" id="val-top1-extra-padding">8</span></div>
+      <div class="control-row"><label>Raio</label><input type="range" min="0" max="30" value="10" id="ctrl-top1-extra-radius" oninput="updateControl()"><span class="val" id="val-top1-extra-radius">10</span></div>
     `;
 
     const top3Section = Array.from(sidebar.querySelectorAll('.sidebar-section')).find((sec) => sec.querySelector('h3')?.textContent?.includes('TOP 3'));
@@ -1657,22 +1807,10 @@ window.addEventListener('load',init);
 
     const extraText = document.getElementById('ctrl-top1-extra-text');
     if (extraText) {
-      extraText.addEventListener('input', () => {
-        if (typeof state !== 'undefined') {
-          state.controls = state.controls || {};
-          state.controls['top1-extra-text'] = extraText.value;
-        }
-        if (typeof scheduleSave === 'function') scheduleSave();
-        if (typeof gerarTabela === 'function') gerarTabela();
-      });
+      extraText.addEventListener('input', () => updatePatchedTextControl('top1-extra-text', extraText.value));
     }
-  }
 
-  function syncPatchedTextControls() {
-    const extraText = document.getElementById('ctrl-top1-extra-text');
-    if (extraText && typeof state !== 'undefined') {
-      extraText.value = state?.controls?.['top1-extra-text'] || '';
-    }
+    syncPatchedControls();
   }
 
   function installTop1AssetPicker() {
@@ -1681,7 +1819,6 @@ window.addEventListener('load',init);
 
     const list = (assets || []).filter((a) => a.type === 'barra');
     const selected = state?.assetRefs?.top1Barra || null;
-
     const items = [
       `<div class="picker-item clear-item${selected ? '' : ' selected'}" onclick="setSlotAsset('top1Barra',null)">∅ NENHUMA</div>`,
       ...list.map((a) => `
@@ -1697,7 +1834,7 @@ window.addEventListener('load',init);
     section.className = 'picker-section slmm-top1-picker';
     section.innerHTML = `
       <h4 style="color:var(--cyan)">BARRA EXCLUSIVA TOP 1</h4>
-      <p class="slmm-top1-help">Se selecionar uma barra aqui, o 1º lugar passa a usar esse visual separado das outras posições.</p>
+      <p class="slmm-top1-help">Se selecionar uma barra aqui, o 1º lugar usa esse visual só dele. Você ainda pode mover a linha inteira pelos controles do TOP 1 especial.</p>
       <div class="picker-grid">${items}</div>
     `;
 
@@ -1705,326 +1842,84 @@ window.addEventListener('load',init);
   }
 
   function applyTop1Overrides() {
-    const active = document.getElementById('ctrl-top1-custom')?.checked;
+    const active = !!getCtrlValue('top1-custom');
     if (!active) return;
 
-    const rowHeight = num(document.getElementById('ctrl-top1-row-h')?.value, 86);
-    const logoScale = num(document.getElementById('ctrl-top1-logo-size')?.value, 190) / 100;
-    const logoX = num(document.getElementById('ctrl-top1-logo-x')?.value, 0);
-    const logoY = num(document.getElementById('ctrl-top1-logo-y')?.value, 0);
-    const nameSize = num(document.getElementById('ctrl-top1-name-size')?.value, 34);
-    const nameX = num(document.getElementById('ctrl-top1-name-x')?.value, 0);
-    const nameY = num(document.getElementById('ctrl-top1-name-y')?.value, 0);
-    const nameColor = document.getElementById('ctrl-top1-name-color')?.value || '#ffe38a';
-    const extraSize = num(document.getElementById('ctrl-top1-extra-size')?.value, 13);
-    const extraX = num(document.getElementById('ctrl-top1-extra-x')?.value, 0);
-    const extraY = num(document.getElementById('ctrl-top1-extra-y')?.value, 0);
-    const extraColor = document.getElementById('ctrl-top1-extra-color')?.value || '#00f0ff';
+    const rowHeight = num(getCtrlValue('top1-row-h'), TOP1_DEFAULTS['top1-row-h']);
+    const rowX = num(getCtrlValue('top1-row-x'), 0);
+    const rowY = num(getCtrlValue('top1-row-y'), 0);
+    const rowGap = num(getCtrlValue('top1-row-gap'), 0);
+
+    const rankShow = !!getCtrlValue('top1-rank-show');
+    const rankSize = num(getCtrlValue('top1-rank-size'), TOP1_DEFAULTS['top1-rank-size']);
+    const rankX = num(getCtrlValue('top1-rank-x'), 0);
+    const rankY = num(getCtrlValue('top1-rank-y'), 0);
+    const rankColor = getCtrlValue('top1-rank-color') || '#ffffff';
+
+    const logoScale = num(getCtrlValue('top1-logo-size'), TOP1_DEFAULTS['top1-logo-size']) / 100;
+    const logoX = num(getCtrlValue('top1-logo-x'), 0);
+    const logoY = num(getCtrlValue('top1-logo-y'), 0);
+    const logoRot = num(getCtrlValue('top1-logo-rot'), 0);
+    const logoOpacity = num(getCtrlValue('top1-logo-opacity'), 100) / 100;
+
+    const flagShow = !!getCtrlValue('top1-flag-show');
+    const flagSize = num(getCtrlValue('top1-flag-size'), TOP1_DEFAULTS['top1-flag-size']);
+    const flagX = num(getCtrlValue('top1-flag-x'), 0);
+    const flagY = num(getCtrlValue('top1-flag-y'), 0);
+    const flagOpacity = num(getCtrlValue('top1-flag-opacity'), 100) / 100;
+
+    const nameSize = num(getCtrlValue('top1-name-size'), TOP1_DEFAULTS['top1-name-size']);
+    const nameX = num(getCtrlValue('top1-name-x'), 0);
+    const nameY = num(getCtrlValue('top1-name-y'), 0);
+    const nameColor = getCtrlValue('top1-name-color') || '#ffe38a';
+    const nameWidth = num(getCtrlValue('top1-name-width'), TOP1_DEFAULTS['top1-name-width']);
+
+    const extraMode = getCtrlValue('top1-extra-mode') || 'below-bar';
+    const extraSize = num(getCtrlValue('top1-extra-size'), TOP1_DEFAULTS['top1-extra-size']);
+    const extraX = num(getCtrlValue('top1-extra-x'), 0);
+    const extraY = num(getCtrlValue('top1-extra-y'), 0);
+    const extraColor = getCtrlValue('top1-extra-color') || '#00f0ff';
+    const extraWidth = num(getCtrlValue('top1-extra-width'), TOP1_DEFAULTS['top1-extra-width']);
+    const extraBg = !!getCtrlValue('top1-extra-bg');
+    const extraBgColor = getCtrlValue('top1-extra-bg-color') || '#0f0f17';
+    const extraBgOpacity = num(getCtrlValue('top1-extra-bg-opacity'), TOP1_DEFAULTS['top1-extra-bg-opacity']);
+    const extraPadding = num(getCtrlValue('top1-extra-padding'), TOP1_DEFAULTS['top1-extra-padding']);
+    const extraRadius = num(getCtrlValue('top1-extra-radius'), TOP1_DEFAULTS['top1-extra-radius']);
+    const extraBackground = extraBg ? alphaHex(extraBgColor, extraBgOpacity) : 'transparent';
 
     document.querySelectorAll('.row.top1-custom').forEach((row) => {
       row.style.height = rowHeight + 'px';
       row.style.overflow = 'visible';
+      row.style.transform = `translate(${rowX}px, ${rowY}px)`;
+      row.style.marginBottom = extraMode === 'below-bar' ? rowGap + 'px' : '0px';
+    });
+
+    document.querySelectorAll('.row.top1-custom .box-rank').forEach((el) => {
+      el.style.display = rankShow ? 'flex' : 'none';
+      el.style.fontSize = rankSize + 'px';
+      el.style.transform = `translate(${rankX}px, ${rankY}px)`;
+      el.style.color = rankColor;
     });
 
     document.querySelectorAll('.row.top1-custom .r-logo').forEach((el) => {
-      el.style.transform = `translate(${logoX}px, ${logoY}px) scale(${logoScale})`;
+      el.style.transform = `translate(${logoX}px, ${logoY}px) scale(${logoScale}) rotate(${logoRot}deg)`;
       el.style.transformOrigin = 'center center';
       el.style.maxWidth = 'none';
       el.style.maxHeight = 'none';
+      el.style.opacity = logoOpacity;
+    });
+
+    document.querySelectorAll('.row.top1-custom .r-flag').forEach((el) => {
+      el.style.display = flagShow && flagSize > 0 ? '' : 'none';
+      el.style.width = flagSize + 'px';
+      el.style.height = Math.max(0, Math.round(flagSize * 0.68)) + 'px';
+      el.style.transform = `translate(${flagX}px, ${flagY}px)`;
+      el.style.opacity = flagOpacity;
     });
 
     document.querySelectorAll('.row.top1-custom .r-name').forEach((el) => {
       el.style.fontSize = nameSize + 'px';
       el.style.transform = `translate(${nameX}px, ${nameY}px)`;
-      el.style.color = nameColor;
-      el.style.lineHeight = '1';
-    });
-
-    document.querySelectorAll('.row.top1-custom .r-extra-info').forEach((el) => {
-      el.style.fontSize = extraSize + 'px';
-      el.style.transform = `translate(${extraX}px, ${extraY}px)`;
-      el.style.color = extraColor;
-    });
-  }
-
-  function forcePasswordlessMode() {
-    window.checkGlobalPass = function () {
-      document.getElementById('global-lock-screen')?.classList.add('hidden');
-    };
-
-    window.openTableWithPassCheck = function (id) {
-      doOpenTable(id, true);
-    };
-
-    window.checkTablePass = function () {
-      closeModal('table-pass-modal');
-    };
-
-    window.unlockEdit = function () {
-      if (typeof state !== 'undefined') state.editUnlocked = true;
-      document.getElementById('edit-lock-bar')?.style.setProperty('display', 'none', 'important');
-      if (typeof setEditorReadonly === 'function') setEditorReadonly(false);
-    };
-
-    window.openChangeTablePass = function () {
-      alert('As proteções por senha foram removidas nesta versão.');
-    };
-
-    window.confirmChangePass = function () {
-      if (typeof state !== 'undefined') state.tablePass = null;
-      document.getElementById('chg-pass-status') && showStatus('chg-pass-status', 'Proteção por senha removida.', 'success');
-      setTimeout(() => closeModal('change-pass-modal'), 300);
-      if (typeof scheduleSave === 'function') scheduleSave();
-    };
-
-    window.confirmNewTable = async function () {
-      const name = document.getElementById('new-table-name').value.trim();
-      if (!name) return showStatus('new-table-status', 'Digite um nome!', 'error');
-
-      const ttype = document.getElementById('new-table-type').value;
-      const t = {
-        id: uid(),
-        name,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-        data: {
-          teams: {},
-          lotes: [],
-          controls: {},
-          pages: [{ name: 'Página 1', start: 1, end: 12 }],
-          currentPageIdx: 0,
-          columnOrder: ['pts', 'kills', 'booyah', 'matches', 'group'],
-          assetRefs: { teamLogos: {} },
-          barras: JSON.parse(JSON.stringify(DEFAULT_BARRAS)),
-          rules: JSON.parse(JSON.stringify(DEFAULT_RULES)),
-          forcedTop1: null,
-          tableType: ttype,
-          tablePass: null,
-          snGrupos: { A: [], B: [], C: [], D: [] },
-          snLotes: []
-        }
-      };
-
-      tables.push(t);
-      await dbPut(ST_TABLES, t);
-      closeModal('new-table-modal');
-      renderTablesList();
-      doOpenTable(t.id, true);
-    };
-
-    const originalDoOpenTable = window.doOpenTable;
-    window.doOpenTable = function (id) {
-      originalDoOpenTable(id, true);
-      if (typeof state !== 'undefined') {
-        state.tablePass = null;
-        state.editUnlocked = true;
-      }
-      if (typeof currentTable !== 'undefined' && currentTable?.data) {
-        currentTable.data.tablePass = null;
-      }
-      document.getElementById('edit-lock-bar')?.style.setProperty('display', 'none', 'important');
-      if (typeof setEditorReadonly === 'function') setEditorReadonly(false);
-      syncPatchedTextControls();
-      installTop1Controls();
-      installTop1AssetPicker();
-      applyTop1Overrides();
-    };
-
-    const originalSaveCurrentTable = window.saveCurrentTable;
-    window.saveCurrentTable = async function () {
-      if (typeof state !== 'undefined') state.tablePass = null;
-      if (typeof currentTable !== 'undefined' && currentTable?.data) currentTable.data.tablePass = null;
-      return originalSaveCurrentTable.apply(this, arguments);
-    };
-
-    const originalDuplicateTable = window.duplicateTable;
-    window.duplicateTable = async function (id) {
-      await originalDuplicateTable(id);
-      const last = tables?.[tables.length - 1];
-      if (last?.data) {
-        last.data.tablePass = null;
-        await dbPut(ST_TABLES, last);
-      }
-      renderTablesList();
-    };
-  }
-
-  function patchAssetPicker() {
-    const originalRenderAssetPicker = window.renderAssetPicker;
-    window.renderAssetPicker = function () {
-      originalRenderAssetPicker.apply(this, arguments);
-      installTop1AssetPicker();
-    };
-  }
-
-  function patchApplyControls() {
-    const originalApplyControls = window.applyControls;
-    window.applyControls = function () {
-      originalApplyControls.apply(this, arguments);
-      applyTop1Overrides();
-    };
-  }
-
-  function patchGerarTabela() {
-    window.gerarTabela = function () {
-      const cl = document.getElementById('col-left');
-      if (!cl) return;
-
-      const headerData = getAssetData(state.assetRefs.header);
-      const sorted = sortTeamsByRules(state.teams);
-      const sameBar = document.getElementById('ctrl-same-bar')?.checked || false;
-      const curPage = state.pages[state.currentPageIdx] || { start: 1, end: 12 };
-      const start = Math.max(1, curPage.start || 1);
-      const end = Math.max(start, curPage.end || start);
-      const slice = sorted.slice(start - 1, end);
-      const top1Custom = document.getElementById('ctrl-top1-custom')?.checked || false;
-      const top1ExtraText = document.getElementById('ctrl-top1-extra-text')?.value || state?.controls?.['top1-extra-text'] || '';
-
-      const firstBarraData = (() => {
-        const fb = (state.barras || []).find((b) => b.assetId);
-        return fb ? getAssetData(fb.assetId) : null;
-      })();
-
-      let html = headerData ? `<img src="${headerData}" class="table-header-strip">` : '';
-
-      for (let i = 0; i < slice.length; i++) {
-        const team = slice[i];
-        const rk = start + i;
-        const key = team.name.toUpperCase();
-        const logo = getTeamLogoData(key);
-        const flag = team.country ? `https://flagcdn.com/w80/${team.country}.png` : null;
-        const isTop1Custom = top1Custom && rk === 1;
-        const top1Bar = isTop1Custom && state.assetRefs?.top1Barra ? getAssetData(state.assetRefs.top1Barra) : null;
-        const rowBar = top1Bar || (sameBar ? firstBarraData : getBarraForRank(rk));
-        const rowStyle = rowBar ? `background-image:url('${rowBar}')` : 'background:rgba(10,16,37,0.8)';
-        const crownMark = state.forcedTop1 === key ? ' 👑' : '';
-        const extraHtml = isTop1Custom && top1ExtraText ? `<div class="r-extra-info">${escapeHtml(top1ExtraText)}</div>` : '';
-
-        html += `
-          <div class="row${isTop1Custom ? ' top1-custom' : ''}" data-rank="${rk}" style="${rowStyle}">
-            <div class="top-stripe"></div>
-            <div class="box-rank">${rk}</div>
-            <div class="box-logo">${logo ? `<img src="${logo}" class="r-logo">` : ''}</div>
-            <div class="box-info">
-              <div class="r-name-area">
-                ${flag ? `<img src="${flag}" class="r-flag" onerror="this.style.display='none'">` : ''}
-                <div class="r-name-wrap">
-                  <div class="r-name">${escapeHtml(team.name)}${crownMark}</div>
-                  ${extraHtml}
-                </div>
-              </div>
-              <div class="stat-floater stat-g">${escapeHtml(team.group || '-')}</div>
-              <div class="stat-floater stat-m">${team.matches || 0}</div>
-              <div class="stat-floater stat-b">${team.booyah}</div>
-              <div class="stat-floater stat-k">${team.kills}</div>
-              <div class="stat-floater stat-pts">${team.pts}</div>
-            </div>
-          </div>
-        `;
-      }
-
-      cl.innerHTML = html;
-      applyControls();
-    };
-  }
-
-  function patchBackupImport() {
-    window.importFullBackup = async function () {
-      const raw = document.getElementById('backup-textarea').value.trim();
-      if (!raw) return showStatus('backup-status', 'Cole ou selecione um arquivo', 'error');
-
-      try {
-        const incoming = JSON.parse(raw);
-        if (!incoming.tables || !Array.isArray(incoming.tables)) throw new Error('JSON inválido');
-        if (!confirm('Importar ' + incoming.tables.length + ' tabela(s)?')) return;
-
-        if (Array.isArray(incoming.assets)) {
-          for (const asset of incoming.assets) {
-            if (!asset?.storage_path) continue;
-            await dbPut(ST_ASSETS, {
-              id: asset.id,
-              type: asset.type,
-              name: asset.name,
-              storage_path: asset.storage_path,
-              createdAt: asset.createdAt || Date.now()
-            });
-          }
-        }
-
-        for (const table of incoming.tables) {
-          if (table?.data) table.data.tablePass = null;
-          await dbPut(ST_TABLES, table);
-        }
-
-        tables = await dbAll(ST_TABLES);
-        assets = await dbAll(ST_ASSETS);
-        showStatus('backup-status', 'Importado!', 'success');
-        setTimeout(() => {
-          closeModal('backup-modal');
-          renderHome();
-        }, 800);
-      } catch (error) {
-        console.error(error);
-        showStatus('backup-status', 'JSON inválido', 'error');
-      }
-    };
-  }
-
-  async function cleanupStoredPasswords() {
-    if (typeof tables === 'undefined' || !Array.isArray(tables)) return;
-
-    let changed = false;
-    for (const table of tables) {
-      if (table?.data?.tablePass) {
-        table.data.tablePass = null;
-        table.updatedAt = Date.now();
-        changed = true;
-        try {
-          await dbPut(ST_TABLES, table);
-        } catch (error) {
-          console.warn('Não consegui limpar senha antiga da tabela:', table?.name, error);
-        }
-      }
-    }
-
-    if (changed) {
-      try {
-        tables = await dbAll(ST_TABLES);
-        if (!document.body.classList.contains('editor-mode')) renderHome();
-      } catch (error) {
-        console.warn('Não consegui recarregar tabelas após limpeza de senha.', error);
-      }
-    }
-  }
-
-  function installPatch() {
-    injectStyles();
-    hidePasswordUI();
-    bumpVisualLabels();
-    installTop1Controls();
-    syncPatchedTextControls();
-    forcePasswordlessMode();
-    patchAssetPicker();
-    patchApplyControls();
-    patchGerarTabela();
-    patchBackupImport();
-    cleanupStoredPasswords();
-
-    console.info('[SLMM upgrade] patch', PATCH_VERSION, 'ativo');
-  }
-
-  onReady(() => {
-    const waitForCore = () => {
-      if (typeof renderHome === 'function' && typeof gerarTabela === 'function' && typeof updateControl === 'function') {
-        installPatch();
-      } else {
-        setTimeout(waitForCore, 120);
-      }
-    };
-
-    waitForCore();
-  });
-})();
 
 </script>
 </body>
