@@ -442,6 +442,47 @@ body.editor-mode .sidebar-toggle{display:block}
     <div class="control-row"><label>Largura faixa</label><input type="range" min="2" max="12" value="5" id="ctrl-top3-width" oninput="updateControl()"><span class="val" id="val-top3-width">5</span></div>
     <div class="control-row"><label>Opacidade</label><input type="range" min="20" max="100" value="90" id="ctrl-top3-opacity" oninput="updateControl()"><span class="val" id="val-top3-opacity">90</span></div>
   </div>
+  <div class="sidebar-section slmm-top1-box" id="slmm-top1-controls-fixed">
+    <h3 style="color:var(--cyan)">TOP 1 ESPECIAL</h3>
+    <p class="slmm-top1-help">Helder embaixo da barra, bandeira só do top 1, logo livre e ajuste fino geral.</p>
+    <div class="control-row"><label>Ativar</label><label class="toggle-switch"><input type="checkbox" id="ctrl-top1-custom" onchange="updateControl()"><span class="toggle-slider"></span></label></div>
+    <div class="control-row"><label>Altura</label><input type="range" min="60" max="220" value="92" id="ctrl-top1-row-h" oninput="updateControl()"><span class="val" id="val-top1-row-h">92</span></div>
+    <div class="control-row"><label>Barra X</label><input type="range" min="-400" max="400" value="0" id="ctrl-top1-row-x" oninput="updateControl()"><span class="val" id="val-top1-row-x">0</span></div>
+    <div class="control-row"><label>Barra Y</label><input type="range" min="-250" max="250" value="0" id="ctrl-top1-row-y" oninput="updateControl()"><span class="val" id="val-top1-row-y">0</span></div>
+    <div class="control-row"><label>Espaço abaixo</label><input type="range" min="0" max="180" value="40" id="ctrl-top1-row-gap" oninput="updateControl()"><span class="val" id="val-top1-row-gap">40</span></div>
+    <div class="control-row"><label>Mostrar rank</label><label class="toggle-switch"><input type="checkbox" id="ctrl-top1-rank-show" checked onchange="updateControl()"><span class="toggle-slider"></span></label></div>
+    <div class="control-row"><label>Rank tam</label><input type="range" min="16" max="90" value="32" id="ctrl-top1-rank-size" oninput="updateControl()"><span class="val" id="val-top1-rank-size">32</span></div>
+    <div class="control-row"><label>Rank X</label><input type="range" min="-250" max="250" value="0" id="ctrl-top1-rank-x" oninput="updateControl()"><span class="val" id="val-top1-rank-x">0</span></div>
+    <div class="control-row"><label>Rank Y</label><input type="range" min="-250" max="250" value="0" id="ctrl-top1-rank-y" oninput="updateControl()"><span class="val" id="val-top1-rank-y">0</span></div>
+    <div class="control-row"><label>Cor rank</label><input type="color" id="ctrl-top1-rank-color" value="#ffffff" oninput="updateControl()"></div>
+    <div class="control-row"><label>Logo %</label><input type="range" min="60" max="1500" value="210" id="ctrl-top1-logo-size" oninput="updateControl()"><span class="val" id="val-top1-logo-size">210</span></div>
+    <div class="control-row"><label>Logo X</label><input type="range" min="-500" max="500" value="0" id="ctrl-top1-logo-x" oninput="updateControl()"><span class="val" id="val-top1-logo-x">0</span></div>
+    <div class="control-row"><label>Logo Y</label><input type="range" min="-500" max="500" value="0" id="ctrl-top1-logo-y" oninput="updateControl()"><span class="val" id="val-top1-logo-y">0</span></div>
+    <div class="control-row"><label>Rotação</label><input type="range" min="-180" max="180" value="0" id="ctrl-top1-logo-rot" oninput="updateControl()"><span class="val" id="val-top1-logo-rot">0</span></div>
+    <div class="control-row"><label>Logo opac.</label><input type="range" min="0" max="100" value="100" id="ctrl-top1-logo-opacity" oninput="updateControl()"><span class="val" id="val-top1-logo-opacity">100</span></div>
+    <div class="control-row"><label>Mostrar bandeira</label><label class="toggle-switch"><input type="checkbox" id="ctrl-top1-flag-show" checked onchange="updateControl()"><span class="toggle-slider"></span></label></div>
+    <div class="control-row"><label>Bandeira tam</label><input type="range" min="0" max="200" value="35" id="ctrl-top1-flag-size" oninput="updateControl()"><span class="val" id="val-top1-flag-size">35</span></div>
+    <div class="control-row"><label>Bandeira X</label><input type="range" min="-300" max="300" value="0" id="ctrl-top1-flag-x" oninput="updateControl()"><span class="val" id="val-top1-flag-x">0</span></div>
+    <div class="control-row"><label>Bandeira Y</label><input type="range" min="-300" max="300" value="0" id="ctrl-top1-flag-y" oninput="updateControl()"><span class="val" id="val-top1-flag-y">0</span></div>
+    <div class="control-row"><label>Bandeira opac.</label><input type="range" min="0" max="100" value="100" id="ctrl-top1-flag-opacity" oninput="updateControl()"><span class="val" id="val-top1-flag-opacity">100</span></div>
+    <div class="control-row"><label>Nome tam</label><input type="range" min="16" max="120" value="36" id="ctrl-top1-name-size" oninput="updateControl()"><span class="val" id="val-top1-name-size">36</span></div>
+    <div class="control-row"><label>Nome X</label><input type="range" min="-400" max="400" value="0" id="ctrl-top1-name-x" oninput="updateControl()"><span class="val" id="val-top1-name-x">0</span></div>
+    <div class="control-row"><label>Nome Y</label><input type="range" min="-300" max="300" value="0" id="ctrl-top1-name-y" oninput="updateControl()"><span class="val" id="val-top1-name-y">0</span></div>
+    <div class="control-row"><label>Nome largura</label><input type="range" min="120" max="900" value="520" id="ctrl-top1-name-width" oninput="updateControl()"><span class="val" id="val-top1-name-width">520</span></div>
+    <div class="control-row"><label>Cor nome</label><input type="color" id="ctrl-top1-name-color" value="#ffe38a" oninput="updateControl()"></div>
+    <div class="control-row" style="flex-direction:column;align-items:flex-start;gap:8px"><label style="width:100%">Helder / texto</label><input type="text" id="ctrl-top1-extra-text" class="slmm-top1-text" placeholder="Ex: HELDER / MVP / CAMPEÃO"></div>
+    <div class="control-row"><label>Modo</label><select id="ctrl-top1-extra-mode" onchange="updateControl()" style="width:150px"><option value="below-bar">Embaixo da barra</option><option value="below-name">Embaixo do nome</option><option value="free">Livre</option></select></div>
+    <div class="control-row"><label>Texto tam</label><input type="range" min="10" max="70" value="14" id="ctrl-top1-extra-size" oninput="updateControl()"><span class="val" id="val-top1-extra-size">14</span></div>
+    <div class="control-row"><label>Texto largura</label><input type="range" min="100" max="800" value="320" id="ctrl-top1-extra-width" oninput="updateControl()"><span class="val" id="val-top1-extra-width">320</span></div>
+    <div class="control-row"><label>Texto X</label><input type="range" min="-600" max="600" value="0" id="ctrl-top1-extra-x" oninput="updateControl()"><span class="val" id="val-top1-extra-x">0</span></div>
+    <div class="control-row"><label>Texto Y</label><input type="range" min="-400" max="400" value="0" id="ctrl-top1-extra-y" oninput="updateControl()"><span class="val" id="val-top1-extra-y">0</span></div>
+    <div class="control-row"><label>Cor texto</label><input type="color" id="ctrl-top1-extra-color" value="#00f0ff" oninput="updateControl()"></div>
+    <div class="control-row"><label>Fundo texto</label><label class="toggle-switch"><input type="checkbox" id="ctrl-top1-extra-bg" onchange="updateControl()"><span class="toggle-slider"></span></label></div>
+    <div class="control-row"><label>Cor fundo</label><input type="color" id="ctrl-top1-extra-bg-color" value="#0f0f17" oninput="updateControl()"></div>
+    <div class="control-row"><label>Opac. fundo</label><input type="range" min="0" max="100" value="75" id="ctrl-top1-extra-bg-opacity" oninput="updateControl()"><span class="val" id="val-top1-extra-bg-opacity">75</span></div>
+    <div class="control-row"><label>Padding</label><input type="range" min="0" max="30" value="8" id="ctrl-top1-extra-padding" oninput="updateControl()"><span class="val" id="val-top1-extra-padding">8</span></div>
+    <div class="control-row"><label>Raio</label><input type="range" min="0" max="30" value="10" id="ctrl-top1-extra-radius" oninput="updateControl()"><span class="val" id="val-top1-extra-radius">10</span></div>
+  </div>
   <div class="sidebar-section">
     <h3>CORES E FONTES</h3>
     <div class="control-row"><label>Fonte Texto</label><select id="ctrl-font-text" onchange="updateControl()"><option value="'Montserrat',sans-serif">Montserrat</option><option value="'Orbitron',sans-serif">Orbitron</option><option value="'Roboto',sans-serif">Roboto</option><option value="'Anton',sans-serif">Anton</option><option value="'Oswald',sans-serif">Oswald</option><option value="'Rajdhani',sans-serif">Rajdhani</option><option value="'Bebas Neue',sans-serif">Bebas Neue</option><option value="'Teko',sans-serif">Teko</option></select></div>
