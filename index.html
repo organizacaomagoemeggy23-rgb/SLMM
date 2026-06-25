@@ -628,8 +628,8 @@ body.editor-mode .sidebar-toggle{display:block}
           <div class="card-title"><div class="icon">i</div>LOTES <span class="badge-count" id="lote-count">0</span></div>
           <div id="lote-list-area"><div class="empty-state"><div class="big-icon">📋</div><p>Nenhum lote</p></div></div>
           <div class="button-group">
-            <button class="btn btn-sm btn-outline download-lotes-btn" onclick="downloadMatchResultsZip()">BAIXAR MATCH RESULTS (.ZIP)</button>
-            <button class="btn btn-sm btn-danger" onclick="limparTodosLotes()">LIMPAR TUDO</button>
+            <button type="button" class="btn btn-sm btn-outline download-lotes-btn" onclick="downloadMatchResultsZip(this)">BAIXAR MATCH RESULTS (.ZIP)</button>
+            <button type="button" class="btn btn-sm btn-danger" onclick="limparTodosLotes()">LIMPAR TUDO</button>
           </div>
           <div class="status-msg" id="lote-download-status"></div>
         </div>
@@ -715,9 +715,11 @@ body.editor-mode .sidebar-toggle{display:block}
         <div class="card-title"><div class="icon">i</div>LOTES <span class="badge-count" id="sn-lote-count">0</span></div>
         <div id="sn-lote-list-area"><div class="empty-state"><div class="big-icon">📋</div><p>Nenhum lote</p></div></div>
         <div class="button-group">
-          <button class="btn btn-sm btn-danger" onclick="snZerarPontuacao()">⚡ ZERAR PONTUAÇÃO GERAL</button>
-          <button class="btn btn-sm btn-danger" onclick="snLimparLotes()">LIMPAR TUDO</button>
+          <button type="button" class="btn btn-sm btn-outline download-lotes-btn" onclick="downloadMatchResultsZip(this)">BAIXAR MATCH RESULTS (.ZIP)</button>
+          <button type="button" class="btn btn-sm btn-danger" onclick="snZerarPontuacao()">⚡ ZERAR PONTUAÇÃO GERAL</button>
+          <button type="button" class="btn btn-sm btn-danger" onclick="snLimparLotes()">LIMPAR TUDO</button>
         </div>
+        <div class="status-msg" id="sn-lote-download-status"></div>
       </div>
     </div>
   </div>
@@ -969,7 +971,7 @@ const ASSET_TYPES=[{key:'logo-team',label:'LOGOS DE EQUIPES',hint:'Nome do arqui
 const DEFAULT_RULES={posPoints:[12,9,8,7,6,5,4,3,2,1,0,0],killPoints:1,tiebreak:['pts','booyah','kills']};
 const DEFAULT_BARRAS=[{id:'b1',name:'Barra 1',start:1,end:6,assetId:null},{id:'b2',name:'Barra 2',start:7,end:18,assetId:null},{id:'b3',name:'Barra 3',start:19,end:99,assetId:null}];
 let state={teams:{},lotes:[],controls:{},pages:[{name:'Página 1',start:1,end:12}],currentPageIdx:0,columnOrder:['pts','kills','booyah','matches','group'],assetRefs:{},rules:null,forcedTop1:null,tableType:'misto',snGrupos:{A:[],B:[],C:[],D:[]},snLotes:[],tablePass:null,editUnlocked:false,barras:null};
-let saveTimer=null;let currentCountryTeam=null;let logoPickerTarget=null;let logoPickerSelected=null;let pendingOpenTableId=null;
+let saveTimer=null;let saveQueue=Promise.resolve();let saveSeq=0;let currentCountryTeam=null;let logoPickerTarget=null;let logoPickerSelected=null;let pendingOpenTableId=null;
 const countries=[{code:'af',name:'Afeganistão'},{code:'za',name:'África do Sul'},{code:'al',name:'Albânia'},{code:'de',name:'Alemanha'},{code:'ad',name:'Andorra'},{code:'ao',name:'Angola'},{code:'ai',name:'Anguilla'},{code:'aq',name:'Antártida'},{code:'ag',name:'Antígua e Barbuda'},{code:'sa',name:'Arábia Saudita'},{code:'dz',name:'Argélia'},{code:'ar',name:'Argentina'},{code:'am',name:'Armênia'},{code:'aw',name:'Aruba'},{code:'au',name:'Austrália'},{code:'at',name:'Áustria'},{code:'az',name:'Azerbaijão'},{code:'bs',name:'Bahamas'},{code:'bh',name:'Bahrein'},{code:'bd',name:'Bangladesh'},{code:'bb',name:'Barbados'},{code:'be',name:'Bélgica'},{code:'bz',name:'Belize'},{code:'bj',name:'Benin'},{code:'bm',name:'Bermudas'},{code:'by',name:'Bielorrússia'},{code:'bo',name:'Bolívia'},{code:'bq',name:'Caribe Neerlandês'},{code:'ba',name:'Bósnia e Herzegovina'},{code:'bw',name:'Botsuana'},{code:'br',name:'Brasil'},{code:'bn',name:'Brunei'},{code:'bg',name:'Bulgária'},{code:'bf',name:'Burkina Faso'},{code:'bi',name:'Burundi'},{code:'bt',name:'Butão'},{code:'cv',name:'Cabo Verde'},{code:'cm',name:'Camarões'},{code:'kh',name:'Camboja'},{code:'ca',name:'Canadá'},{code:'qa',name:'Catar'},{code:'kz',name:'Cazaquistão'},{code:'td',name:'Chade'},{code:'cl',name:'Chile'},{code:'cn',name:'China'},{code:'cy',name:'Chipre'},{code:'co',name:'Colômbia'},{code:'km',name:'Comores'},{code:'cg',name:'Congo'},{code:'cd',name:'Congo (RD)'},{code:'kp',name:'Coreia do Norte'},{code:'kr',name:'Coreia do Sul'},{code:'ci',name:'Costa do Marfim'},{code:'cr',name:'Costa Rica'},{code:'hr',name:'Croácia'},{code:'cu',name:'Cuba'},{code:'cw',name:'Curaçao'},{code:'dk',name:'Dinamarca'},{code:'dj',name:'Djibuti'},{code:'dm',name:'Dominica'},{code:'eg',name:'Egito'},{code:'sv',name:'El Salvador'},{code:'ae',name:'Emirados Árabes'},{code:'ec',name:'Equador'},{code:'er',name:'Eritreia'},{code:'sk',name:'Eslováquia'},{code:'si',name:'Eslovênia'},{code:'es',name:'Espanha'},{code:'us',name:'Estados Unidos'},{code:'ee',name:'Estônia'},{code:'sz',name:'Eswatini'},{code:'et',name:'Etiópia'},{code:'fj',name:'Fiji'},{code:'ph',name:'Filipinas'},{code:'fi',name:'Finlândia'},{code:'fr',name:'França'},{code:'ga',name:'Gabão'},{code:'gm',name:'Gâmbia'},{code:'gh',name:'Gana'},{code:'ge',name:'Geórgia'},{code:'gi',name:'Gibraltar'},{code:'gd',name:'Granada'},{code:'gr',name:'Grécia'},{code:'gl',name:'Groenlândia'},{code:'gp',name:'Guadalupe'},{code:'gu',name:'Guam'},{code:'gt',name:'Guatemala'},{code:'gg',name:'Guernsey'},{code:'gy',name:'Guiana'},{code:'gf',name:'Guiana Francesa'},{code:'gn',name:'Guiné'},{code:'gw',name:'Guiné-Bissau'},{code:'gq',name:'Guiné Equatorial'},{code:'ht',name:'Haiti'},{code:'nl',name:'Holanda'},{code:'hn',name:'Honduras'},{code:'hk',name:'Hong Kong'},{code:'hu',name:'Hungria'},{code:'ye',name:'Iêmen'},{code:'ax',name:'Ilhas Åland'},{code:'ky',name:'Ilhas Cayman'},{code:'cc',name:'Ilhas Cocos'},{code:'ck',name:'Ilhas Cook'},{code:'fo',name:'Ilhas Faroe'},{code:'fk',name:'Ilhas Malvinas'},{code:'mp',name:'Ilhas Marianas do Norte'},{code:'mh',name:'Ilhas Marshall'},{code:'nf',name:'Ilha Norfolk'},{code:'pn',name:'Ilhas Pitcairn'},{code:'sb',name:'Ilhas Salomão'},{code:'tc',name:'Ilhas Turks e Caicos'},{code:'vg',name:'Ilhas Virgens Britânicas'},{code:'vi',name:'Ilhas Virgens Americanas'},{code:'cx',name:'Ilha Christmas'},{code:'im',name:'Ilha de Man'},{code:'in',name:'Índia'},{code:'id',name:'Indonésia'},{code:'ir',name:'Irã'},{code:'iq',name:'Iraque'},{code:'ie',name:'Irlanda'},{code:'is',name:'Islândia'},{code:'il',name:'Israel'},{code:'it',name:'Itália'},{code:'jm',name:'Jamaica'},{code:'jp',name:'Japão'},{code:'je',name:'Jersey'},{code:'jo',name:'Jordânia'},{code:'ki',name:'Kiribati'},{code:'xk',name:'Kosovo'},{code:'kw',name:'Kuwait'},{code:'la',name:'Laos'},{code:'ls',name:'Lesoto'},{code:'lv',name:'Letônia'},{code:'lb',name:'Líbano'},{code:'lr',name:'Libéria'},{code:'ly',name:'Líbia'},{code:'li',name:'Liechtenstein'},{code:'lt',name:'Lituânia'},{code:'lu',name:'Luxemburgo'},{code:'mo',name:'Macau'},{code:'mk',name:'Macedônia do Norte'},{code:'mg',name:'Madagascar'},{code:'my',name:'Malásia'},{code:'mw',name:'Malawi'},{code:'mv',name:'Maldivas'},{code:'ml',name:'Mali'},{code:'mt',name:'Malta'},{code:'ma',name:'Marrocos'},{code:'mq',name:'Martinica'},{code:'mu',name:'Maurício'},{code:'mr',name:'Mauritânia'},{code:'yt',name:'Mayotte'},{code:'mx',name:'México'},{code:'fm',name:'Micronésia'},{code:'mm',name:'Mianmar'},{code:'md',name:'Moldávia'},{code:'mc',name:'Mônaco'},{code:'mn',name:'Mongólia'},{code:'me',name:'Montenegro'},{code:'ms',name:'Montserrat'},{code:'mz',name:'Moçambique'},{code:'na',name:'Namíbia'},{code:'nr',name:'Nauru'},{code:'np',name:'Nepal'},{code:'ni',name:'Nicarágua'},{code:'ne',name:'Níger'},{code:'ng',name:'Nigéria'},{code:'nu',name:'Niue'},{code:'no',name:'Noruega'},{code:'nc',name:'Nova Caledônia'},{code:'nz',name:'Nova Zelândia'},{code:'om',name:'Omã'},{code:'pw',name:'Palau'},{code:'ps',name:'Palestina'},{code:'pa',name:'Panamá'},{code:'pg',name:'Papua Nova Guiné'},{code:'pk',name:'Paquistão'},{code:'py',name:'Paraguai'},{code:'pe',name:'Peru'},{code:'pf',name:'Polinésia Francesa'},{code:'pl',name:'Polônia'},{code:'pr',name:'Porto Rico'},{code:'pt',name:'Portugal'},{code:'ke',name:'Quênia'},{code:'kg',name:'Quirguistão'},{code:'gb',name:'Reino Unido'},{code:'cf',name:'Rep. Centro-Africana'},{code:'do',name:'Rep. Dominicana'},{code:'cz',name:'Rep. Tcheca'},{code:'re',name:'Reunião'},{code:'ro',name:'Romênia'},{code:'rw',name:'Ruanda'},{code:'ru',name:'Rússia'},{code:'eh',name:'Saara Ocidental'},{code:'ws',name:'Samoa'},{code:'as',name:'Samoa Americana'},{code:'sm',name:'San Marino'},{code:'sh',name:'Santa Helena'},{code:'lc',name:'Santa Lúcia'},{code:'bl',name:'São Bartolomeu'},{code:'kn',name:'São Cristóvão e Nevis'},{code:'mf',name:'São Martinho (FR)'},{code:'sx',name:'São Martinho (NL)'},{code:'pm',name:'São Pedro e Miquelon'},{code:'st',name:'São Tomé e Príncipe'},{code:'vc',name:'São Vicente e Granadinas'},{code:'sc',name:'Seicheles'},{code:'sn',name:'Senegal'},{code:'sl',name:'Serra Leoa'},{code:'rs',name:'Sérvia'},{code:'sg',name:'Singapura'},{code:'sy',name:'Síria'},{code:'so',name:'Somália'},{code:'lk',name:'Sri Lanka'},{code:'sd',name:'Sudão'},{code:'ss',name:'Sudão do Sul'},{code:'se',name:'Suécia'},{code:'ch',name:'Suíça'},{code:'sr',name:'Suriname'},{code:'sj',name:'Svalbard e Jan Mayen'},{code:'tj',name:'Tajiquistão'},{code:'th',name:'Tailândia'},{code:'tw',name:'Taiwan'},{code:'tz',name:'Tanzânia'},{code:'tl',name:'Timor-Leste'},{code:'tg',name:'Togo'},{code:'tk',name:'Tokelau'},{code:'to',name:'Tonga'},{code:'tt',name:'Trinidad e Tobago'},{code:'tn',name:'Tunísia'},{code:'tm',name:'Turcomenistão'},{code:'tr',name:'Turquia'},{code:'tv',name:'Tuvalu'},{code:'ua',name:'Ucrânia'},{code:'ug',name:'Uganda'},{code:'uy',name:'Uruguai'},{code:'uz',name:'Uzbequistão'},{code:'vu',name:'Vanuatu'},{code:'va',name:'Vaticano'},{code:'ve',name:'Venezuela'},{code:'vn',name:'Vietnã'},{code:'wf',name:'Wallis e Futuna'},{code:'zm',name:'Zâmbia'},{code:'zw',name:'Zimbábue'}];
 
 function checkGlobalPass(){
@@ -1042,7 +1044,7 @@ function doOpenTable(id, editUnlocked){
   window.scrollTo(0,0);
 }
 
-function setEditorReadonly(readonly){const btns=document.querySelectorAll('#main-area .btn:not(.back-btn):not(.tab-btn):not(.download-lotes-btn)');btns.forEach(b=>{if(b.textContent.includes('VOLTAR'))return;b.disabled=readonly});document.querySelectorAll('#main-area textarea,#main-area .teams-table input').forEach(el=>el.disabled=readonly)}
+function setEditorReadonly(readonly){const btns=document.querySelectorAll('#main-area .btn:not(.back-btn):not(.tab-btn)');btns.forEach(b=>{if(b.textContent.includes('VOLTAR')||b.classList.contains('download-lotes-btn'))return;b.disabled=readonly});document.querySelectorAll('#main-area textarea,#main-area .teams-table input').forEach(el=>el.disabled=readonly)}
 function unlockEdit(){const val=document.getElementById('edit-pass-input').value;if(!val)return;if(val===state.tablePass){state.editUnlocked=true;document.getElementById('edit-lock-bar').style.display='none';document.getElementById('edit-pass-input').value='';setEditorReadonly(false);showStatus('save-indicator','Desbloqueado ✓')}else{const inp=document.getElementById('edit-pass-input');inp.classList.add('shake');inp.value='';setTimeout(()=>inp.classList.remove('shake'),500)}}
 function openChangeTablePass(){document.getElementById('chg-current-pass').value='';document.getElementById('chg-new-pass').value='';document.getElementById('chg-new-pass2').value='';document.getElementById('chg-pass-status').className='status-msg';document.getElementById('change-pass-modal').classList.add('show')}
 function confirmChangePass(){const cur=document.getElementById('chg-current-pass').value;const n1=document.getElementById('chg-new-pass').value;const n2=document.getElementById('chg-new-pass2').value;const validCurrent=(!state.tablePass)||(cur===state.tablePass);if(!validCurrent){showStatus('chg-pass-status','Senha atual incorreta.','error');return}if(n1&&n1!==n2){showStatus('chg-pass-status','As novas senhas não coincidem.','error');return}state.tablePass=n1||null;state.editUnlocked=true;document.getElementById('edit-lock-bar').style.display='none';scheduleSave();showStatus('chg-pass-status',n1?'Senha alterada!':'Senha removida!','success');setTimeout(()=>closeModal('change-pass-modal'),1000)}
@@ -1058,9 +1060,13 @@ function tickClock(){const el=document.getElementById('live-time');if(!el)return
 const escapeHtml=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function createNewTable(){document.getElementById('new-table-name').value='Tabela '+(tables.length+1);document.getElementById('new-table-type').value='misto';document.getElementById('create-auth-pass').value='';document.getElementById('new-table-pass').value='';document.getElementById('new-table-pass2').value='';document.getElementById('new-table-status').className='status-msg';document.getElementById('new-table-modal').classList.add('show');setTimeout(()=>document.getElementById('new-table-name').focus(),100)}
 async function confirmNewTable(){const name=document.getElementById('new-table-name').value.trim();if(!name)return showStatus('new-table-status','Digite um nome!','error');const ttype=document.getElementById('new-table-type').value;const t={id:uid(),name,createdAt:Date.now(),updatedAt:Date.now(),data:{teams:{},lotes:[],controls:{},pages:[{name:'Página 1',start:1,end:12}],currentPageIdx:0,columnOrder:['pts','kills','booyah','matches','group'],assetRefs:{teamLogos:{}},barras:JSON.parse(JSON.stringify(DEFAULT_BARRAS)),rules:JSON.parse(JSON.stringify(DEFAULT_RULES)),forcedTop1:null,tableType:ttype,tablePass:null,snGrupos:{A:[],B:[],C:[],D:[]},snLotes:[]}};tables.push(t);await dbPut(ST_TABLES,t);closeModal('new-table-modal');renderTablesList();doOpenTable(t.id, true)}
-function goHome(){document.body.classList.remove('editor-mode');document.getElementById('home-view').style.display='block';currentTable=null;state.editUnlocked=false;renderHome()}
-async function saveCurrentTable(){if(!currentTable)return;if(state.tableType==='sala') snSyncTeams();currentTable.data={teams:state.teams,lotes:state.lotes,controls:state.controls,pages:state.pages,currentPageIdx:state.currentPageIdx,columnOrder:state.columnOrder,assetRefs:state.assetRefs,barras:state.barras,rules:state.rules,forcedTop1:state.forcedTop1,tableType:state.tableType,tablePass:state.tablePass,snGrupos:state.snGrupos,snLotes:state.snLotes};currentTable.updatedAt=Date.now();await dbPut(ST_TABLES,currentTable);const idx=tables.findIndex(t=>t.id===currentTable.id);if(idx>=0)tables[idx]=currentTable;showSaveIndicator();updateStorageInfo()}
-function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(saveCurrentTable,400)}
+async function goHome(){if(currentTable){try{await saveNow()}catch(e){console.warn('Erro ao salvar antes de voltar:',e)}}document.body.classList.remove('editor-mode');document.getElementById('home-view').style.display='block';currentTable=null;state.editUnlocked=false;renderHome()}
+function cloneSaveData(obj){return JSON.parse(JSON.stringify(obj??null))}
+function buildCurrentTableData(){return {teams:cloneSaveData(state.teams)||{},lotes:cloneSaveData(state.lotes)||[],controls:cloneSaveData(state.controls)||{},pages:cloneSaveData(state.pages)||[{name:'PÃ¡gina 1',start:1,end:12}],currentPageIdx:state.currentPageIdx,columnOrder:cloneSaveData(state.columnOrder)||['pts','kills','booyah','matches','group'],assetRefs:cloneSaveData(state.assetRefs)||{teamLogos:{}},barras:cloneSaveData(state.barras)||JSON.parse(JSON.stringify(DEFAULT_BARRAS)),rules:cloneSaveData(state.rules)||JSON.parse(JSON.stringify(DEFAULT_RULES)),forcedTop1:state.forcedTop1,tableType:state.tableType,tablePass:state.tablePass,snGrupos:cloneSaveData(state.snGrupos)||{A:[],B:[],C:[],D:[]},snLotes:cloneSaveData(state.snLotes)||[]}}
+async function saveCurrentTable(){if(!currentTable)return;if(state.tableType==='sala') snSyncTeams();const tableRef=currentTable;const payload={...tableRef,data:buildCurrentTableData(),updatedAt:Date.now()};const seq=++saveSeq;saveQueue=saveQueue.catch(()=>{}).then(async()=>{await dbPut(ST_TABLES,payload);Object.assign(tableRef,{data:payload.data,updatedAt:payload.updatedAt,name:payload.name});const idx=tables.findIndex(t=>t.id===payload.id);if(idx>=0)tables[idx]=tableRef;if(currentTable&&currentTable.id===payload.id)currentTable=tableRef;if(seq===saveSeq){showSaveIndicator();updateStorageInfo()}});return saveQueue}
+function runCurrentTableSave(){return (window.saveCurrentTable&&window.saveCurrentTable!==saveCurrentTable)?window.saveCurrentTable():saveCurrentTable()}
+function scheduleSave(delay=400){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{saveTimer=null;runCurrentTableSave()},delay)}
+async function saveNow(){clearTimeout(saveTimer);saveTimer=null;return runCurrentTableSave()}
 function showSaveIndicator(){const el=document.getElementById('save-indicator');if(!el)return;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1200)}
 async function renameCurrentTable(){if(!currentTable)return;currentTable.name=document.getElementById('table-name-input').value.trim()||'Sem nome';scheduleSave()}
 async function renameTablePrompt(id){const t=tables.find(x=>x.id===id);if(!t)return;const n=prompt('Novo nome:',t.name);if(n==null)return;t.name=n.trim()||t.name;t.updatedAt=Date.now();await dbPut(ST_TABLES,t);renderTablesList()}
@@ -1257,7 +1263,7 @@ function snLoadConfronto(){
   if(snName&&!snName.value)snName.value=labelConfronto+' — Rodada';
 }
 
-function snAplicarConfronto(){
+async function snAplicarConfronto(){
   if(!state.editUnlocked)return alert('Desbloqueie a edição primeiro.');
   const salaBaseName=document.getElementById('sn-sala-name').value.trim()||'Sala';
   const rows=document.querySelectorAll('#sn-confronto-area .sala-normal-input-grid[data-team]');
@@ -1275,7 +1281,9 @@ function snAplicarConfronto(){
     totalApplied+=entries.length;
   }
   snSyncTeams();
-  scheduleSave();snRenderGrupos();renderTeamsTable();gerarTabela();snRenderLotes();renderLotes();
+  snRenderGrupos();renderTeamsTable();gerarTabela();snRenderLotes();renderLotes();
+  showStatus('sn-confronto-status','Salvando '+totalApplied+' entradas...','success');
+  await saveNow();
   showStatus('sn-confronto-status',totalApplied+' entradas aplicadas!','success');
   document.querySelectorAll('.sn-pos-input,.sn-kills-input').forEach(el=>el.value='0');
   document.getElementById('sn-sala-name').value='';
@@ -1283,16 +1291,18 @@ function snAplicarConfronto(){
 
 function snRenderLotes(){const area=document.getElementById('sn-lote-list-area');const lc=document.getElementById('sn-lote-count');if(lc)lc.textContent=state.snLotes.length;area.innerHTML=state.snLotes.length?'<div class="lote-list">'+state.snLotes.map(l=>'<span class="lote-badge">'+escapeHtml(l.name)+' ('+l.count+')</span>').join('')+'</div>':'<div class="empty-state"><div class="big-icon">📋</div><p>Nenhum lote</p></div>'}
 function snSyncTeams(){for(const g of ['A','B','C','D']){(state.snGrupos[g]||[]).forEach(t=>{t.pts=0;t.booyah=0;t.kills=0;t.matches=0})}state.teams={};for(const g of ['A','B','C','D']){(state.snGrupos[g]||[]).forEach(t=>{const key=t.name.toUpperCase();state.teams[key]={name:t.name,pts:0,booyah:0,kills:0,matches:0,country:t.country||'br',group:g}})}(state.snLotes||[]).forEach(lote=>{(lote.data||[]).forEach(ld=>{const key=ld.name.toUpperCase();if(state.teams[key]){state.teams[key].pts+=ld.pts||0;state.teams[key].booyah+=ld.booyah||0;state.teams[key].kills+=ld.kills||0;state.teams[key].matches=(state.teams[key].matches||0)+1}for(const g of ['A','B','C','D']){const tf=(state.snGrupos[g]||[]).find(t=>t.name.toUpperCase()===key);if(tf){tf.pts+=ld.pts||0;tf.booyah+=ld.booyah||0;tf.kills+=ld.kills||0;tf.matches=(tf.matches||0)+1}}})})}
-function snLimparLotes(){if(!confirm('Apagar pontuação de todas as equipes nesta planilha?'))return;state.snLotes=[];state.lotes=[];snSyncTeams();scheduleSave();snRenderGrupos();renderTeamsTable();gerarTabela();snRenderLotes();renderLotes()}
+async function snLimparLotes(){if(!confirm('Apagar pontuação de todas as equipes nesta planilha?'))return;state.snLotes=[];state.lotes=[];snSyncTeams();snRenderGrupos();renderTeamsTable();gerarTabela();snRenderLotes();renderLotes();setLoteZipStatus('Limpando e salvando...','success');try{await saveNow();setLoteZipStatus('Dados antigos apagados e salvos.','success')}catch(e){console.error(e);setLoteZipStatus('Erro ao salvar limpeza: '+(e.message||e),'error')}}
 
-function snZerarPontuacao(){
+async function snZerarPontuacao(){
   if(!state.editUnlocked)return alert('Desbloqueie a edição primeiro.');
   if(!confirm('⚠️ ZERAR PONTUAÇÃO GERAL?\n\nIsso vai apagar TODOS os pontos, kills, booyah e partidas de TODAS as equipes desta planilha.\n\nAs equipes e grupos PERMANECERÃO cadastrados.\n\nTem certeza?'))return;
   state.snLotes=[];state.lotes=[];
   for(const g of ['A','B','C','D']){(state.snGrupos[g]||[]).forEach(t=>{t.pts=0;t.booyah=0;t.kills=0;t.matches=0})}
   Object.keys(state.teams).forEach(k=>{state.teams[k].pts=0;state.teams[k].booyah=0;state.teams[k].kills=0;state.teams[k].matches=0});
   state.forcedTop1=null;
-  scheduleSave();snRenderGrupos();renderTeamsTable();gerarTabela();snRenderLotes();renderLotes();
+  snRenderGrupos();renderTeamsTable();gerarTabela();snRenderLotes();renderLotes();
+  showStatus('sn-confronto-status','Salvando pontuação zerada...','success');
+  await saveNow();
   showStatus('sn-confronto-status','✓ Pontuação geral zerada! Equipes mantidas.','success');
 }
 
@@ -1301,68 +1311,28 @@ function extrair(text){const lines=text.split('\n').map(l=>l.trim()).filter(l=>l
 function isMatchResultFormat(text){const lines=text.split('\n').map(l=>l.trim()).filter(l=>l);if(!lines.length)return false;return /^TeamName\s*:/i.test(lines[0])}
 function extrairMatchResult(text){const lines=text.split('\n').map(l=>l.trim()).filter(l=>l);const teams=[];let i=0;while(i<lines.length){const line=lines[i];if(/^TeamName\s*:/i.test(line)){const teamMatch=line.match(/TeamName\s*:\s*(.+?)\s+Rank\s*:\s*(\d+)/i);const killMatch=line.match(/KillScore\s*:\s*(\d+)/i);if(teamMatch){const name=teamMatch[1].trim();const rank=parseInt(teamMatch[2])||0;const killScore=killMatch?parseInt(killMatch[1]):0;const pts=calcPointsFromRules(rank,killScore);const booyah=(rank===1)?1:0;teams.push({name,rank,kills:killScore,pts,booyah,_source:'matchresult'})}i++;let skipped=0;while(i<lines.length&&skipped<4){if(/^NAME\s*:/i.test(lines[i])){skipped++;i++}else break}}else i++}if(!teams.length)throw new Error('Nenhuma equipe encontrada no MatchResult.log');return teams}
 
-function aplicarLote(d,nome,source,meta){
-  const src=source||'csv';
-  const lote={name:nome||'Lote '+(state.lotes.length+1),count:d.length,data:d,source:src};
-  if(src==='matchresult'&&meta&&meta.rawText){
-    lote.rawText=meta.rawText;
-    lote.rawName=meta.rawName||nome||'MatchResult.log';
-    lote.rawType='matchresult';
-  }
-  state.lotes.push(lote);
-  d.forEach(t=>{const k=t.name.toUpperCase();if(state.teams[k]){state.teams[k].pts+=t.pts;state.teams[k].booyah+=t.booyah;state.teams[k].kills+=t.kills;state.teams[k].matches=(state.teams[k].matches||0)+1}else state.teams[k]={name:t.name,pts:t.pts,booyah:t.booyah,kills:t.kills,matches:1,country:'br',group:'-'}});
-  autoAssocLogos(true);
-}
-function processarTextoCSV(){if(!state.editUnlocked)return alert('Desbloqueie a edição primeiro.');const t=document.getElementById('csv-text').value.trim();if(!t)return showStatus('csv-status','Vazio!','error');try{let d,source;if(isMatchResultFormat(t)){d=extrairMatchResult(t);source='matchresult'}else{d=extrair(t);source='csv'}const meta=source==='matchresult'?{rawText:t,rawName:'Texto MatchResult.log'}:null;aplicarLote(d,'Texto ('+source+')',source,meta);scheduleSave();renderLotes();renderTeamsTable();gerarTabela();showStatus('csv-status',d.length+' equipes processadas! ['+source.toUpperCase()+']','success');document.getElementById('csv-text').value=''}catch(e){showStatus('csv-status',e.message,'error')}}
-async function processarArquivosCSV(){if(!state.editUnlocked)return alert('Desbloqueie a edição primeiro.');const files=[...document.getElementById('csv-files').files];if(!files.length)return showStatus('csv-status','Selecione arquivos!','error');let ok=0,er=0,tot=0;for(const f of files){try{const txt=await f.text();let d,source;if(isMatchResultFormat(txt)){d=extrairMatchResult(txt);source='matchresult'}else{d=extrair(txt);source='csv'}const meta=source==='matchresult'?{rawText:txt,rawName:f.name}:null;aplicarLote(d,f.name,source,meta);ok++;tot+=d.length}catch(e){er++}}scheduleSave();renderLotes();renderTeamsTable();gerarTabela();showStatus('csv-status',ok?ok+' arquivo(s), '+tot+' registros.'+(er?' '+er+' erro(s).':''):'Nenhum arquivo válido.','success');document.getElementById('csv-files').value='';atualizarListaArq()}
+function aplicarLote(d,nome,source,meta){const lote={name:nome||'Lote '+(state.lotes.length+1),count:d.length,data:d,source:source||'csv'};if(meta&&meta.rawText&&lote.source==='matchresult'){lote.rawText=meta.rawText;lote.rawName=meta.rawName||nome||'MatchResult.log';lote.rawType='matchresult'}state.lotes.push(lote);d.forEach(t=>{const k=t.name.toUpperCase();if(state.teams[k]){state.teams[k].pts+=t.pts;state.teams[k].booyah+=t.booyah;state.teams[k].kills+=t.kills;state.teams[k].matches=(state.teams[k].matches||0)+1}else state.teams[k]={name:t.name,pts:t.pts,booyah:t.booyah,kills:t.kills,matches:1,country:'br',group:'-'}});autoAssocLogos(true)}
+async function processarTextoCSV(){if(!state.editUnlocked)return alert('Desbloqueie a edição primeiro.');const t=document.getElementById('csv-text').value.trim();if(!t)return showStatus('csv-status','Vazio!','error');try{let d,source,meta=null;if(isMatchResultFormat(t)){d=extrairMatchResult(t);source='matchresult';meta={rawText:t,rawName:'Texto MatchResult.log'}}else{d=extrair(t);source='csv'}aplicarLote(d,'Texto ('+source+')',source,meta);renderLotes();renderTeamsTable();gerarTabela();showStatus('csv-status','Salvando '+d.length+' equipes...','success');await saveNow();showStatus('csv-status',d.length+' equipes processadas! ['+source.toUpperCase()+']','success');document.getElementById('csv-text').value=''}catch(e){showStatus('csv-status',e.message,'error')}}
+async function processarArquivosCSV(){if(!state.editUnlocked)return alert('Desbloqueie a edição primeiro.');const files=[...document.getElementById('csv-files').files];if(!files.length)return showStatus('csv-status','Selecione arquivos!','error');let ok=0,er=0,tot=0;for(const f of files){try{const txt=await f.text();let d,source,meta=null;if(isMatchResultFormat(txt)){d=extrairMatchResult(txt);source='matchresult';meta={rawText:txt,rawName:f.name||'MatchResult.log'}}else{d=extrair(txt);source='csv'}aplicarLote(d,f.name,source,meta);ok++;tot+=d.length}catch(e){er++}}renderLotes();renderTeamsTable();gerarTabela();showStatus('csv-status',ok?'Salvando '+ok+' arquivo(s)...':'Nenhum arquivo válido.','success');if(ok)await saveNow();showStatus('csv-status',ok?ok+' arquivo(s), '+tot+' registros.'+(er?' '+er+' erro(s).':''):'Nenhum arquivo válido.','success');document.getElementById('csv-files').value='';atualizarListaArq()}
 function atualizarListaArq(){const f=[...document.getElementById('csv-files').files];const el=document.getElementById('csv-file-list');if(el)el.innerHTML=f.length?'<b>Selecionados:</b> '+f.map(x=>x.name).join(' | '):''}
-function safeDownloadName(name){return String(name||'match-result').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[<>:"/\\|?*\x00-\x1F]+/g,'_').replace(/\s+/g,'_').replace(/_+/g,'_').replace(/^_+|_+$/g,'').slice(0,90)||'match-result'}
-function uniqueZipName(name,used){let file=name,base=name,ext='';const dot=name.lastIndexOf('.');if(dot>0){base=name.slice(0,dot);ext=name.slice(dot)}let n=2;while(used[file.toLowerCase()]){file=base+'-'+(n++)+ext}used[file.toLowerCase()]=true;return file}
-function isMatchResultLote(lote){return !!(lote&&(((lote.source||'').toLowerCase()==='matchresult')||((lote.rawType||'').toLowerCase()==='matchresult')))}
-function buildMatchResultLog(lote){
-  const rows=(lote.data||[]).map((t,i)=>({...t,_idx:i})).sort((a,b)=>(Number(a.rank)||9999)-(Number(b.rank)||9999)||a._idx-b._idx);
-  return rows.map(t=>'TeamName : '+(t.name||'Sem nome')+' Rank : '+(Number(t.rank)||0)+' KillScore : '+(Number(t.kills)||0)).join('\r\n')+'\r\n';
-}
-function loteDownloadText(lote){return lote.rawText?String(lote.rawText):buildMatchResultLog(lote)}
-async function downloadMatchResultsZip(){
-  const statusId='lote-download-status';
-  const items=(state.lotes||[]).map((lote,idx)=>({lote,idx})).filter(x=>isMatchResultLote(x.lote));
-  if(!items.length)return showStatus(statusId,'Nenhum MatchResult.log encontrado nos lotes desta tabela.','error');
-  if(typeof JSZip==='undefined')return showStatus(statusId,'ZIP indisponivel. Recarregue a pagina e tente novamente.','error');
-  try{
-    showStatus(statusId,'Montando ZIP...','success');
-    const zip=new JSZip();
-    const used={};
-    let reconstructed=0;
-    items.forEach(({lote,idx})=>{
-      if(!lote.rawText)reconstructed++;
-      const originalName=String(lote.rawName||lote.name||('match-result-'+(idx+1)));
-      const base=safeDownloadName(originalName.replace(/\.(txt|csv|log)$/i,''))||('match-result-'+(idx+1));
-      zip.file(uniqueZipName(base+'.log',used),loteDownloadText(lote));
-    });
-    if(reconstructed){
-      zip.file('README.txt','Alguns MatchResult.log antigos foram reconstruidos usando os dados salvos na tabela: equipe, rank e kills. Os novos arquivos enviados depois desta atualizacao ficam salvos com o texto original.\r\n');
-    }
-    const blob=await zip.generateAsync({type:'blob'});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    a.href=url;
-    a.download=safeDownloadName((currentTable?.name||'tabela')+'-match-results')+'.zip';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),1000);
-    showStatus(statusId,items.length+' MatchResult(s) baixados em ZIP.','success');
-  }catch(e){
-    console.error(e);
-    showStatus(statusId,'Erro ao gerar ZIP: '+(e.message||e),'error');
-  }
-}
+function setLoteZipStatus(msg,type){['lote-download-status','sn-lote-download-status'].forEach(id=>{const el=document.getElementById(id);if(el)showStatus(id,msg,type)})}
+function safeDownloadName(name,fallback){let base=String(name||fallback||'MatchResult.log').replace(/[\\/:*?"<>|]+/g,'_').replace(/\s+/g,' ').trim().slice(0,120);if(!base)base=fallback||'MatchResult.log';base=base.replace(/\.(txt|csv)$/i,'.log');if(!/\.log$/i.test(base))base+='.log';return base}
+function uniqueZipName(name,used){let base=safeDownloadName(name,'MatchResult.log');let finalName=base;let i=2;while(used.has(finalName.toLowerCase())){finalName=base.replace(/\.log$/i,'')+'-'+i+'.log';i++}used.add(finalName.toLowerCase());return finalName}
+function isMatchResultLote(lote){return !!lote&&(lote.source==='matchresult'||lote.rawType==='matchresult'||String(lote.name||'').toLowerCase().includes('matchresult'))}
+function buildMatchResultLog(lote){return (lote.data||[]).map((t,i)=>{const rank=parseInt(t.rank||t.pos||t.position)||i+1;const kills=parseInt(t.kills||t.killScore||t.killscore)||0;return 'TeamName : '+(t.name||('Equipe '+(i+1)))+' Rank : '+rank+' KillScore : '+kills}).join('\n')+'\n'}
+function loteDownloadText(lote){if(typeof lote.rawText==='string'&&lote.rawText.trim())return {text:lote.rawText,reconstructed:false};return {text:buildMatchResultLog(lote),reconstructed:true}}
+let ZIP_CRC_TABLE=null;
+function zipCrc32(bytes){if(!ZIP_CRC_TABLE){ZIP_CRC_TABLE=[];for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=(c&1)?(0xedb88320^(c>>>1)):(c>>>1);ZIP_CRC_TABLE[n]=c>>>0}}let crc=0^(-1);for(let i=0;i<bytes.length;i++)crc=(crc>>>8)^ZIP_CRC_TABLE[(crc^bytes[i])&0xff];return (crc^(-1))>>>0}
+function zipDosDateTime(date){const d=date||new Date();const time=((d.getHours()&31)<<11)|((d.getMinutes()&63)<<5)|((Math.floor(d.getSeconds()/2))&31);const day=Math.max(1,d.getDate());const dosDate=(((d.getFullYear()-1980)&127)<<9)|(((d.getMonth()+1)&15)<<5)|(day&31);return {time,date:dosDate}}
+function zipU16(n){return new Uint8Array([n&255,(n>>>8)&255])}
+function zipU32(n){return new Uint8Array([n&255,(n>>>8)&255,(n>>>16)&255,(n>>>24)&255])}
+async function buildSimpleZipBlob(files){const enc=new TextEncoder();const chunks=[];const central=[];let offset=0;const dt=zipDosDateTime(new Date());for(const file of files){const nameBytes=enc.encode(file.name);const dataBytes=enc.encode(file.text);const crc=zipCrc32(dataBytes);const local=[zipU32(0x04034b50),zipU16(20),zipU16(0x0800),zipU16(0),zipU16(dt.time),zipU16(dt.date),zipU32(crc),zipU32(dataBytes.length),zipU32(dataBytes.length),zipU16(nameBytes.length),zipU16(0),nameBytes,dataBytes];chunks.push(...local);const localSize=local.reduce((s,x)=>s+x.length,0);const centralHeader=[zipU32(0x02014b50),zipU16(20),zipU16(20),zipU16(0x0800),zipU16(0),zipU16(dt.time),zipU16(dt.date),zipU32(crc),zipU32(dataBytes.length),zipU32(dataBytes.length),zipU16(nameBytes.length),zipU16(0),zipU16(0),zipU16(0),zipU16(0),zipU32(0),zipU32(offset),nameBytes];central.push(...centralHeader);offset+=localSize}const centralOffset=offset;const centralSize=central.reduce((s,x)=>s+x.length,0);const end=[zipU32(0x06054b50),zipU16(0),zipU16(0),zipU16(files.length),zipU16(files.length),zipU32(centralSize),zipU32(centralOffset),zipU16(0)];return new Blob([...chunks,...central,...end],{type:'application/zip'})}
+async function downloadMatchResultsZip(btn){if(window.__matchZipBusy)return;const lotes=(state.lotes||[]).filter(isMatchResultLote);if(!lotes.length){setLoteZipStatus('Nenhum MatchResult salvo nos lotes.','error');return}window.__matchZipBusy=true;if(btn)btn.disabled=true;try{const used=new Set();const files=[];let rebuilt=0;lotes.forEach((lote,i)=>{const item=loteDownloadText(lote);if(item.reconstructed)rebuilt++;files.push({name:uniqueZipName(lote.rawName||lote.name||('MatchResult-'+(i+1)+'.log'),used),text:item.text})});let blob;if(window.JSZip){const zip=new JSZip();files.forEach(f=>zip.file(f.name,f.text));if(rebuilt)zip.file('README.txt','Alguns MatchResults antigos nao tinham o texto original salvo. Esses arquivos foram reconstruidos com TeamName, Rank e KillScore a partir da tabela.');blob=await zip.generateAsync({type:'blob'})}else{if(rebuilt)files.push({name:'README.txt',text:'Alguns MatchResults antigos nao tinham o texto original salvo. Esses arquivos foram reconstruidos com TeamName, Rank e KillScore a partir da tabela.'});blob=await buildSimpleZipBlob(files)}const a=document.createElement('a');const url=URL.createObjectURL(blob);const zipName=String((currentTable?.name||'SLMM')+'-match-results').replace(/[\\/:*?"<>|]+/g,'_').replace(/\s+/g,' ').trim().slice(0,120)||'match-results';a.href=url;a.download=zipName+'.zip';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);setLoteZipStatus(lotes.length+' MatchResult(s) baixados em ZIP.','success')}catch(e){console.error(e);setLoteZipStatus('Erro ao gerar ZIP: '+(e.message||e),'error')}finally{window.__matchZipBusy=false;if(btn)btn.disabled=false}}
 function renderLotes(){document.getElementById('lote-count').textContent=state.lotes.length;const area=document.getElementById('lote-list-area');area.innerHTML=state.lotes.length?'<div class="lote-list">'+state.lotes.map(l=>'<span class="lote-badge">'+escapeHtml(l.name)+' ('+l.count+')'+(l.source?' ['+l.source.toUpperCase()+']':'')+'</span>').join('')+'</div>':'<div class="empty-state"><div class="big-icon">📋</div><p>Nenhum lote</p></div>'}
-function limparTodosLotes(){if(!state.editUnlocked)return alert('Desbloqueie a edição primeiro.');if(!confirm('Apagar todas as equipes e lotes?'))return;state.teams={};state.lotes=[];state.assetRefs.teamLogos={};state.forcedTop1=null;scheduleSave();renderLotes();renderTeamsTable();gerarTabela()}
+async function limparTodosLotes(){if(!state.editUnlocked)return alert('Desbloqueie a edição primeiro.');if(!confirm('Apagar todas as equipes e lotes?'))return;state.teams={};state.lotes=[];if(!state.assetRefs)state.assetRefs={};state.assetRefs.teamLogos={};state.forcedTop1=null;renderLotes();renderTeamsTable();gerarTabela();setLoteZipStatus('Limpando e salvando...','success');try{await saveNow();setLoteZipStatus('Dados antigos apagados e salvos.','success')}catch(e){console.error(e);setLoteZipStatus('Erro ao salvar limpeza: '+(e.message||e),'error')}}
 
 function renderSalaTeams(){const area=document.getElementById('sala-teams-area');const keys=Object.keys(state.teams).sort();if(!keys.length){area.innerHTML='<div class="empty-state"><div class="big-icon">📋</div><p>Nenhuma equipe cadastrada.</p></div>';return}let html='<div style="display:grid;grid-template-columns:40px 1fr 100px 100px;gap:10px;align-items:center;padding:10px 14px;background:var(--bg-2);font-family:var(--display);font-size:14px;color:var(--gold);letter-spacing:1.5px"><div></div><div>EQUIPE</div><div style="text-align:center">POSIÇÃO</div><div style="text-align:center">KILLS</div></div>';keys.forEach(k=>{const t=state.teams[k];const lo=getTeamLogoData(k);html+=`<div class="sala-team-row" data-team="${k}"><div>${lo?'<img src="'+lo+'" class="sala-team-logo">':''}</div><div class="sala-team-name">${escapeHtml(t.name)}</div><input type="number" class="sala-pos" min="0" max="99" value="0"><input type="number" class="sala-kills" min="0" max="999" value="0"></div>`});area.innerHTML=html}
-function aplicarSalaManual(){if(!state.editUnlocked)return alert('Desbloqueie a edição primeiro.');const salaName=document.getElementById('sala-name').value.trim()||'Sala '+(state.lotes.length+1);const rows=document.querySelectorAll('#sala-teams-area .sala-team-row[data-team]');if(!rows.length)return showStatus('sala-status','Carregue as equipes primeiro!','error');const entries=[];rows.forEach(row=>{const teamKey=row.dataset.team;const pos=parseInt(row.querySelector('.sala-pos').value)||0;const kills=parseInt(row.querySelector('.sala-kills').value)||0;if(pos>0)entries.push({teamKey,pos,kills})});if(!entries.length)return showStatus('sala-status','Nenhuma equipe com posição > 0!','error');const loteData=entries.map(e=>{const t=state.teams[e.teamKey];const pts=calcPointsFromRules(e.pos,e.kills);const booyah=(e.pos===1)?1:0;return {name:t.name,pts,booyah,kills:e.kills,rank:e.pos,_source:'manual'}});aplicarLote(loteData,salaName,'manual');scheduleSave();renderLotes();renderTeamsTable();gerarTabela();showStatus('sala-status',entries.length+' equipes aplicadas em "'+salaName+'"!','success');rows.forEach(row=>{const pi=row.querySelector('.sala-pos');const ki=row.querySelector('.sala-kills');if(pi)pi.value='0';if(ki)ki.value='0'});document.getElementById('sala-name').value=''}
+async function aplicarSalaManual(){if(!state.editUnlocked)return alert('Desbloqueie a edição primeiro.');const salaName=document.getElementById('sala-name').value.trim()||'Sala '+(state.lotes.length+1);const rows=document.querySelectorAll('#sala-teams-area .sala-team-row[data-team]');if(!rows.length)return showStatus('sala-status','Carregue as equipes primeiro!','error');const entries=[];rows.forEach(row=>{const teamKey=row.dataset.team;const pos=parseInt(row.querySelector('.sala-pos').value)||0;const kills=parseInt(row.querySelector('.sala-kills').value)||0;if(pos>0)entries.push({teamKey,pos,kills})});if(!entries.length)return showStatus('sala-status','Nenhuma equipe com posição > 0!','error');const loteData=entries.map(e=>{const t=state.teams[e.teamKey];const pts=calcPointsFromRules(e.pos,e.kills);const booyah=(e.pos===1)?1:0;return {name:t.name,pts,booyah,kills:e.kills,rank:e.pos,_source:'manual'}});aplicarLote(loteData,salaName,'manual');renderLotes();renderTeamsTable();gerarTabela();showStatus('sala-status','Salvando sala...','success');await saveNow();showStatus('sala-status',entries.length+' equipes aplicadas em "'+salaName+'"!','success');rows.forEach(row=>{const pi=row.querySelector('.sala-pos');const ki=row.querySelector('.sala-kills');if(pi)pi.value='0';if(ki)ki.value='0'});document.getElementById('sala-name').value=''}
 
 function renderRulesUI(){renderRulesPosGrid();renderRulesKillPts();renderTiebreakList()}
 function renderRulesPosGrid(){const rules=getRules();const grid=document.getElementById('rules-pos-grid');if(!grid)return;grid.innerHTML=rules.posPoints.map((pts,i)=>`<div class="rule-pos-cell"><div class="pos-label">${i+1}</div><input type="number" min="0" max="99" value="${pts}" onchange="updateRulePosPoints(${i},this.value)"></div>`).join('')}
@@ -1454,13 +1424,7 @@ window.addEventListener('load',init);
 
 <script>
 (() => {
-  function onReady(fn) {
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn, { once: true });
-    else fn();
-  }
-
-  function injectStyles() {}
-
+  const PATCH_VERSION = 'match-results-zip-fix';
   const DEFAULTS = {
     top1Custom: false,
     top1RowH: 92,
@@ -1548,6 +1512,16 @@ window.addEventListener('load',init);
     const el = getCtrlEl(key);
     if (!el) return getStateValue(key);
     return el.type === 'checkbox' ? !!el.checked : el.value;
+  }
+
+  const getControlValue = getValue;
+  const colorWithAlpha = alphaHex;
+
+  function saveControlValue(key, value) {
+    ensureControlState();
+    if (typeof state !== 'undefined') state.controls[key] = value;
+    if (typeof applyTop1Styles === 'function') applyTop1Styles();
+    if (typeof scheduleSave === 'function') scheduleSave();
   }
 
   function setControlValue(key, value) {
@@ -1891,7 +1865,7 @@ window.addEventListener('load',init);
   }
 
   function install() {
-    injectStyles();
+    installStyle();
     hidePasswordUI();
     installBadge();
     installTop1Controls();
@@ -1904,7 +1878,7 @@ window.addEventListener('load',init);
     console.info('[SLMM upgrade] patch ' + PATCH_VERSION + ' ativo');
   }
 
-  onReady(() => {
+  whenReady(() => {
     const wait = () => {
       if (typeof renderHome === 'function' && typeof gerarTabela === 'function' && typeof updateControl === 'function') install();
       else setTimeout(wait, 120);
