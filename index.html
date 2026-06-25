@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SLMM System 1.3</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;700&family=Syne:wght@600;700;800&family=Teko:wght@400;500;600;700&display=swap');
 :root{--gold:#e8b923;--gold-deep:#a8830d;--gold-glow:#ffd966;--cyan:#00f0ff;--cyan-deep:#0080ff;--crimson:#ff2e4c;--emerald:#00d97e;--bg-0:#08080d;--bg-1:#0f0f17;--bg-2:#16161f;--bg-3:#1f1f2c;--line:#2a2a3a;--line-bright:#3a3a52;--ink:#ffffff;--ink-dim:#9ca0b0;--ink-mute:#5a5e70;--display:'Bebas Neue',sans-serif;--display-alt:'Syne',sans-serif;--body:'Rajdhani',sans-serif;--mono:'JetBrains Mono',monospace;--largura-final:1080px;--altura-final:1350px;--sidebar-width:380px;--gold-light:var(--gold-glow);--blue-navy:#0a1025;--bg-dark:var(--bg-0);--bg-card:var(--bg-2);--bg-card-hover:var(--bg-3);--border-subtle:var(--line);--text-primary:var(--ink);--text-secondary:var(--ink-dim);--success:var(--emerald);--error:var(--crimson);--whatsapp:#25D366;--backup:var(--cyan);}
@@ -626,7 +627,11 @@ body.editor-mode .sidebar-toggle{display:block}
         <div class="card">
           <div class="card-title"><div class="icon">i</div>LOTES <span class="badge-count" id="lote-count">0</span></div>
           <div id="lote-list-area"><div class="empty-state"><div class="big-icon">📋</div><p>Nenhum lote</p></div></div>
-          <div class="button-group"><button class="btn btn-sm btn-danger" onclick="limparTodosLotes()">LIMPAR TUDO</button></div>
+          <div class="button-group">
+            <button class="btn btn-sm btn-outline download-lotes-btn" onclick="downloadMatchResultsZip()">BAIXAR MATCH RESULTS (.ZIP)</button>
+            <button class="btn btn-sm btn-danger" onclick="limparTodosLotes()">LIMPAR TUDO</button>
+          </div>
+          <div class="status-msg" id="lote-download-status"></div>
         </div>
       </div>
       <div class="sub-tab-content" id="subtab-manual">
@@ -1037,7 +1042,7 @@ function doOpenTable(id, editUnlocked){
   window.scrollTo(0,0);
 }
 
-function setEditorReadonly(readonly){const btns=document.querySelectorAll('#main-area .btn:not(.back-btn):not(.tab-btn)');btns.forEach(b=>{if(b.textContent.includes('VOLTAR'))return;b.disabled=readonly});document.querySelectorAll('#main-area textarea,#main-area .teams-table input').forEach(el=>el.disabled=readonly)}
+function setEditorReadonly(readonly){const btns=document.querySelectorAll('#main-area .btn:not(.back-btn):not(.tab-btn):not(.download-lotes-btn)');btns.forEach(b=>{if(b.textContent.includes('VOLTAR'))return;b.disabled=readonly});document.querySelectorAll('#main-area textarea,#main-area .teams-table input').forEach(el=>el.disabled=readonly)}
 function unlockEdit(){const val=document.getElementById('edit-pass-input').value;if(!val)return;if(val===state.tablePass){state.editUnlocked=true;document.getElementById('edit-lock-bar').style.display='none';document.getElementById('edit-pass-input').value='';setEditorReadonly(false);showStatus('save-indicator','Desbloqueado ✓')}else{const inp=document.getElementById('edit-pass-input');inp.classList.add('shake');inp.value='';setTimeout(()=>inp.classList.remove('shake'),500)}}
 function openChangeTablePass(){document.getElementById('chg-current-pass').value='';document.getElementById('chg-new-pass').value='';document.getElementById('chg-new-pass2').value='';document.getElementById('chg-pass-status').className='status-msg';document.getElementById('change-pass-modal').classList.add('show')}
 function confirmChangePass(){const cur=document.getElementById('chg-current-pass').value;const n1=document.getElementById('chg-new-pass').value;const n2=document.getElementById('chg-new-pass2').value;const validCurrent=(!state.tablePass)||(cur===state.tablePass);if(!validCurrent){showStatus('chg-pass-status','Senha atual incorreta.','error');return}if(n1&&n1!==n2){showStatus('chg-pass-status','As novas senhas não coincidem.','error');return}state.tablePass=n1||null;state.editUnlocked=true;document.getElementById('edit-lock-bar').style.display='none';scheduleSave();showStatus('chg-pass-status',n1?'Senha alterada!':'Senha removida!','success');setTimeout(()=>closeModal('change-pass-modal'),1000)}
@@ -1296,10 +1301,63 @@ function extrair(text){const lines=text.split('\n').map(l=>l.trim()).filter(l=>l
 function isMatchResultFormat(text){const lines=text.split('\n').map(l=>l.trim()).filter(l=>l);if(!lines.length)return false;return /^TeamName\s*:/i.test(lines[0])}
 function extrairMatchResult(text){const lines=text.split('\n').map(l=>l.trim()).filter(l=>l);const teams=[];let i=0;while(i<lines.length){const line=lines[i];if(/^TeamName\s*:/i.test(line)){const teamMatch=line.match(/TeamName\s*:\s*(.+?)\s+Rank\s*:\s*(\d+)/i);const killMatch=line.match(/KillScore\s*:\s*(\d+)/i);if(teamMatch){const name=teamMatch[1].trim();const rank=parseInt(teamMatch[2])||0;const killScore=killMatch?parseInt(killMatch[1]):0;const pts=calcPointsFromRules(rank,killScore);const booyah=(rank===1)?1:0;teams.push({name,rank,kills:killScore,pts,booyah,_source:'matchresult'})}i++;let skipped=0;while(i<lines.length&&skipped<4){if(/^NAME\s*:/i.test(lines[i])){skipped++;i++}else break}}else i++}if(!teams.length)throw new Error('Nenhuma equipe encontrada no MatchResult.log');return teams}
 
-function aplicarLote(d,nome,source){state.lotes.push({name:nome||'Lote '+(state.lotes.length+1),count:d.length,data:d,source:source||'csv'});d.forEach(t=>{const k=t.name.toUpperCase();if(state.teams[k]){state.teams[k].pts+=t.pts;state.teams[k].booyah+=t.booyah;state.teams[k].kills+=t.kills;state.teams[k].matches=(state.teams[k].matches||0)+1}else state.teams[k]={name:t.name,pts:t.pts,booyah:t.booyah,kills:t.kills,matches:1,country:'br',group:'-'}});autoAssocLogos(true)}
-function processarTextoCSV(){if(!state.editUnlocked)return alert('Desbloqueie a edição primeiro.');const t=document.getElementById('csv-text').value.trim();if(!t)return showStatus('csv-status','Vazio!','error');try{let d,source;if(isMatchResultFormat(t)){d=extrairMatchResult(t);source='matchresult'}else{d=extrair(t);source='csv'}aplicarLote(d,'Texto ('+source+')',source);scheduleSave();renderLotes();renderTeamsTable();gerarTabela();showStatus('csv-status',d.length+' equipes processadas! ['+source.toUpperCase()+']','success');document.getElementById('csv-text').value=''}catch(e){showStatus('csv-status',e.message,'error')}}
-async function processarArquivosCSV(){if(!state.editUnlocked)return alert('Desbloqueie a edição primeiro.');const files=[...document.getElementById('csv-files').files];if(!files.length)return showStatus('csv-status','Selecione arquivos!','error');let ok=0,er=0,tot=0;for(const f of files){try{const txt=await f.text();let d,source;if(isMatchResultFormat(txt)){d=extrairMatchResult(txt);source='matchresult'}else{d=extrair(txt);source='csv'}aplicarLote(d,f.name,source);ok++;tot+=d.length}catch(e){er++}}scheduleSave();renderLotes();renderTeamsTable();gerarTabela();showStatus('csv-status',ok?ok+' arquivo(s), '+tot+' registros.'+(er?' '+er+' erro(s).':''):'Nenhum arquivo válido.','success');document.getElementById('csv-files').value='';atualizarListaArq()}
+function aplicarLote(d,nome,source,meta){
+  const src=source||'csv';
+  const lote={name:nome||'Lote '+(state.lotes.length+1),count:d.length,data:d,source:src};
+  if(src==='matchresult'&&meta&&meta.rawText){
+    lote.rawText=meta.rawText;
+    lote.rawName=meta.rawName||nome||'MatchResult.log';
+    lote.rawType='matchresult';
+  }
+  state.lotes.push(lote);
+  d.forEach(t=>{const k=t.name.toUpperCase();if(state.teams[k]){state.teams[k].pts+=t.pts;state.teams[k].booyah+=t.booyah;state.teams[k].kills+=t.kills;state.teams[k].matches=(state.teams[k].matches||0)+1}else state.teams[k]={name:t.name,pts:t.pts,booyah:t.booyah,kills:t.kills,matches:1,country:'br',group:'-'}});
+  autoAssocLogos(true);
+}
+function processarTextoCSV(){if(!state.editUnlocked)return alert('Desbloqueie a edição primeiro.');const t=document.getElementById('csv-text').value.trim();if(!t)return showStatus('csv-status','Vazio!','error');try{let d,source;if(isMatchResultFormat(t)){d=extrairMatchResult(t);source='matchresult'}else{d=extrair(t);source='csv'}const meta=source==='matchresult'?{rawText:t,rawName:'Texto MatchResult.log'}:null;aplicarLote(d,'Texto ('+source+')',source,meta);scheduleSave();renderLotes();renderTeamsTable();gerarTabela();showStatus('csv-status',d.length+' equipes processadas! ['+source.toUpperCase()+']','success');document.getElementById('csv-text').value=''}catch(e){showStatus('csv-status',e.message,'error')}}
+async function processarArquivosCSV(){if(!state.editUnlocked)return alert('Desbloqueie a edição primeiro.');const files=[...document.getElementById('csv-files').files];if(!files.length)return showStatus('csv-status','Selecione arquivos!','error');let ok=0,er=0,tot=0;for(const f of files){try{const txt=await f.text();let d,source;if(isMatchResultFormat(txt)){d=extrairMatchResult(txt);source='matchresult'}else{d=extrair(txt);source='csv'}const meta=source==='matchresult'?{rawText:txt,rawName:f.name}:null;aplicarLote(d,f.name,source,meta);ok++;tot+=d.length}catch(e){er++}}scheduleSave();renderLotes();renderTeamsTable();gerarTabela();showStatus('csv-status',ok?ok+' arquivo(s), '+tot+' registros.'+(er?' '+er+' erro(s).':''):'Nenhum arquivo válido.','success');document.getElementById('csv-files').value='';atualizarListaArq()}
 function atualizarListaArq(){const f=[...document.getElementById('csv-files').files];const el=document.getElementById('csv-file-list');if(el)el.innerHTML=f.length?'<b>Selecionados:</b> '+f.map(x=>x.name).join(' | '):''}
+function safeDownloadName(name){return String(name||'match-result').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[<>:"/\\|?*\x00-\x1F]+/g,'_').replace(/\s+/g,'_').replace(/_+/g,'_').replace(/^_+|_+$/g,'').slice(0,90)||'match-result'}
+function uniqueZipName(name,used){let file=name,base=name,ext='';const dot=name.lastIndexOf('.');if(dot>0){base=name.slice(0,dot);ext=name.slice(dot)}let n=2;while(used[file.toLowerCase()]){file=base+'-'+(n++)+ext}used[file.toLowerCase()]=true;return file}
+function isMatchResultLote(lote){return !!(lote&&(((lote.source||'').toLowerCase()==='matchresult')||((lote.rawType||'').toLowerCase()==='matchresult')))}
+function buildMatchResultLog(lote){
+  const rows=(lote.data||[]).map((t,i)=>({...t,_idx:i})).sort((a,b)=>(Number(a.rank)||9999)-(Number(b.rank)||9999)||a._idx-b._idx);
+  return rows.map(t=>'TeamName : '+(t.name||'Sem nome')+' Rank : '+(Number(t.rank)||0)+' KillScore : '+(Number(t.kills)||0)).join('\r\n')+'\r\n';
+}
+function loteDownloadText(lote){return lote.rawText?String(lote.rawText):buildMatchResultLog(lote)}
+async function downloadMatchResultsZip(){
+  const statusId='lote-download-status';
+  const items=(state.lotes||[]).map((lote,idx)=>({lote,idx})).filter(x=>isMatchResultLote(x.lote));
+  if(!items.length)return showStatus(statusId,'Nenhum MatchResult.log encontrado nos lotes desta tabela.','error');
+  if(typeof JSZip==='undefined')return showStatus(statusId,'ZIP indisponivel. Recarregue a pagina e tente novamente.','error');
+  try{
+    showStatus(statusId,'Montando ZIP...','success');
+    const zip=new JSZip();
+    const used={};
+    let reconstructed=0;
+    items.forEach(({lote,idx})=>{
+      if(!lote.rawText)reconstructed++;
+      const originalName=String(lote.rawName||lote.name||('match-result-'+(idx+1)));
+      const base=safeDownloadName(originalName.replace(/\.(txt|csv|log)$/i,''))||('match-result-'+(idx+1));
+      zip.file(uniqueZipName(base+'.log',used),loteDownloadText(lote));
+    });
+    if(reconstructed){
+      zip.file('README.txt','Alguns MatchResult.log antigos foram reconstruidos usando os dados salvos na tabela: equipe, rank e kills. Os novos arquivos enviados depois desta atualizacao ficam salvos com o texto original.\r\n');
+    }
+    const blob=await zip.generateAsync({type:'blob'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=safeDownloadName((currentTable?.name||'tabela')+'-match-results')+'.zip';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    showStatus(statusId,items.length+' MatchResult(s) baixados em ZIP.','success');
+  }catch(e){
+    console.error(e);
+    showStatus(statusId,'Erro ao gerar ZIP: '+(e.message||e),'error');
+  }
+}
 function renderLotes(){document.getElementById('lote-count').textContent=state.lotes.length;const area=document.getElementById('lote-list-area');area.innerHTML=state.lotes.length?'<div class="lote-list">'+state.lotes.map(l=>'<span class="lote-badge">'+escapeHtml(l.name)+' ('+l.count+')'+(l.source?' ['+l.source.toUpperCase()+']':'')+'</span>').join('')+'</div>':'<div class="empty-state"><div class="big-icon">📋</div><p>Nenhum lote</p></div>'}
 function limparTodosLotes(){if(!state.editUnlocked)return alert('Desbloqueie a edição primeiro.');if(!confirm('Apagar todas as equipes e lotes?'))return;state.teams={};state.lotes=[];state.assetRefs.teamLogos={};state.forcedTop1=null;scheduleSave();renderLotes();renderTeamsTable();gerarTabela()}
 
@@ -1396,6 +1454,13 @@ window.addEventListener('load',init);
 
 <script>
 (() => {
+  function onReady(fn) {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn, { once: true });
+    else fn();
+  }
+
+  function injectStyles() {}
+
   const DEFAULTS = {
     top1Custom: false,
     top1RowH: 92,
